@@ -6,6 +6,7 @@ import (
     "strings"
     "bufio"
     "bytes"
+    "sync"
     "log"
     "os"
     "./commands"
@@ -22,36 +23,54 @@ func postData(client *http.Client, url string, data []byte){
     defer resp.Body.Close()
 }
 
+func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
+    defer wg.Done()
+    client := &http.Client{}
+    for _, command := range cmds {
+        js, err := json.Marshal(command)
+        if err != nil {
+            log.Fatal(err)
+        }
+        postData(client, url, js)
+    }
+}
+
 func main() {
-    file, err := os.Open("workfiles/45User_testWorkLoad")
+    file, err := os.Open("workfiles/10User_testWorkLoad")
     if err != nil {
         log.Fatal(err)
     }
     defer file.Close()
 
     url := "http://localhost:8080"
-    client := &http.Client{}
-    cmds := make([]commands.Command, 0)
+    allCmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
     scanner := bufio.NewScanner(file)
-
 
     for scanner.Scan() {
         line := replacer.Replace(scanner.Text())
         data := strings.Fields(line)
         command := commands.ParseData(data)
-        cmds = append(cmds, command)
+        allCmds = append(allCmds, command)
     }
 
-    for _, command := range cmds {
-        js, err := json.Marshal(command)
-        if err != nil {
-            log.Fatal(err)
+    userMap := make(map[string][]commands.Command)
+    for _, command := range allCmds {
+        if _, exist := userMap[command.Username]; !exist {
+            userMap[command.Username] = make([]commands.Command, 0)
         }
-        go postData(client, url, js)
+        userMap[command.Username] = append(userMap[command.Username], command)
     }
 
+    var wg sync.WaitGroup
+
+    wg.Add(len(userMap))
+    for _, cmds := range userMap {
+        go postUserData(&wg, url, cmds)
+    }
+    
+    wg.Wait()
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
