@@ -160,7 +160,5 @@ func ParseData(data []string) Command {
         default:
             log.Fatalf("Invalid command: %s", data[1])
     }
-
-    log.Println(command)
     return command
 }
