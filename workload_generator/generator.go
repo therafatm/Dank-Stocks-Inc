@@ -20,10 +20,21 @@ func ParseData(data []string) commands.Command {
         case "ADD":
             command = commands.ParseAdd(data)
 
+        case "QUOTE":
+            command = commands.ParseQuote(data)
+
+        case "BUY":
+            command = commands.ParseBuy(data)
+
+        case "SELL":
+            command = commands.ParseSell(data)
+
+
         default:
             log.Fatal("Invalid command")
     }
 
+    fmt.Println(command)
     return command
 }
 
@@ -43,7 +54,6 @@ func main() {
         data := strings.Fields(line)
         command := ParseData(data)
         cmds = append(cmds, command)
-        fmt.Println(cmds)
     }
 
     if err := scanner.Err(); err != nil {
