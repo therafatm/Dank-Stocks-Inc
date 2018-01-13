@@ -10,11 +10,11 @@ import (
 )
 
 
-func ParseData(data []string) interface{}{
+func ParseData(data []string) commands.Command {
     if len(data) < 2{
         log.Fatal("Length of entry too short")
     }
-    var command interface{}
+    var command commands.Command
 
     switch cmdName := data[1]; cmdName {
         case "ADD":
@@ -34,7 +34,7 @@ func main() {
     }
     defer file.Close()
 
-    cmds := make([]interface{}, 0)
+    cmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
     scanner := bufio.NewScanner(file)
