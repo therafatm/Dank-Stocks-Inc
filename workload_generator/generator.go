@@ -7,20 +7,23 @@ import (
     "bufio"
     "bytes"
     "sync"
+    "time"
     "log"
+    "fmt"
     "os"
     "./commands"
 )
 
 func postData(client *http.Client, url string, data []byte){
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
-    req.Header.Set("Connection", "close")
+    req, err := http.NewRequest("GET", url, bytes.NewBuffer(data))
+    req.Header.Set("Connection", "keep-alive")
     req.Header.Set("Content-Type", "application/json")
     resp, err := client.Do(req)
     if err != nil {
-        log.Printf("%s\n", err)
+        log.Fatal(err)
+    }else{
+        defer resp.Body.Close()
     }
-    defer resp.Body.Close()
 }
 
 func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
@@ -36,7 +39,7 @@ func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
 }
 
 func main() {
-    file, err := os.Open("workfiles/10User_testWorkLoad")
+    file, err := os.Open("workfiles/10userWorkLoad")
     if err != nil {
         log.Fatal(err)
     }
@@ -64,6 +67,7 @@ func main() {
     }
 
     var wg sync.WaitGroup
+    var start = time.Now()
 
     wg.Add(len(userMap))
     for _, cmds := range userMap {
@@ -71,6 +75,8 @@ func main() {
     }
     
     wg.Wait()
+    totalTime := time.Since(start)
+    fmt.Printf("%d in %s\n", len(allCmds), totalTime)
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)

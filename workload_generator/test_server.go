@@ -20,6 +20,7 @@ func rootHandler(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		log.Fatal(err)
 		return
 	}
 	w.Write(data)

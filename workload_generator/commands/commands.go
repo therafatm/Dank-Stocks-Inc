@@ -6,11 +6,11 @@ import (
 )
 
 type Command struct {
-    Name string `json:",omitempty"`
-    Username string `json:",omitempty"`
-    Symbol string `json:",omitempty"`
-    Amount float64 `json:",omitempty"`
-    Filename string `json:",omitempty"`
+    Name string     `json:"name,omitempty"`
+    Username string `json:"username,omitempty"`
+    Symbol string   `json:"symbol,omitempty"`
+    Amount float64  `json:"amount,omitempty"`
+    Filename string `json:"filename,omitempty"`
 }
 
 func parseCommandUserSymbolAmount(data []string) Command {
