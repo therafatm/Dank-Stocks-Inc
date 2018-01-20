@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+
+  transaction:
+    working_dir: /go/src/transaction_service
+    volumes: 
+      - ./transaction_service:/go/src/transaction_service
+    build: ./transaction_service
+    ports:
+      - "8080:8080"
+
+
