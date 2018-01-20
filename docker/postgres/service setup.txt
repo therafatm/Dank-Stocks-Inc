@@ -1,0 +1,9 @@
+docker service create --name postgresql \
+  --mount src=pg_data,dst=/var/lib/postgresql/data/pgdata \
+  --network camnet \
+  -p 6542:5432 \
+  -e POSTGRES_USER="user" \
+  -e POSTGRES_DB="db" \
+  -e POSTGRES_PASSWORD="pass" \
+  -e PGDATA=/var/lib/postgresql/data/pgdata \
+  postgres
