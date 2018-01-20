@@ -45,7 +45,7 @@ func main() {
     }
     defer file.Close()
 
-    url := "http://0.0.0.0:8080"
+    url := "http://0.0.0.0:8000"
     allCmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
