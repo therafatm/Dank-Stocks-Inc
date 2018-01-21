@@ -1,11 +1,10 @@
 package main
 
 import (
-    "encoding/json"
     "net/http"
     "strings"
+    "io/ioutil"
     "bufio"
-    "bytes"
     "sync"
     "time"
     "log"
@@ -14,38 +13,46 @@ import (
     "./commands"
 )
 
-func postData(client *http.Client, url string, data []byte){
-    req, err := http.NewRequest("GET", url, bytes.NewBuffer(data))
-    req.Header.Set("Connection", "keep-alive")
-    req.Header.Set("Content-Type", "application/json")
-    resp, err := client.Do(req)
+func postData(client *http.Client, url string){
+    req, err := http.NewRequest("GET", url, nil)
     if err != nil {
         log.Fatal(err)
-    }else{
-        defer resp.Body.Close()
     }
+    req.Header.Set("Connection", "keep-alive")
+    resp, err := client.Do(req)
+    defer resp.Body.Close()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Sent request %s\n", url)
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Body: %s\n", body)
+
 }
 
 func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
     defer wg.Done()
     client := &http.Client{}
     for _, command := range cmds {
-        js, err := json.Marshal(command)
-        if err != nil {
-            log.Fatal(err)
+        endpoint := commands.FormatCommandEndpoint(command)
+        if endpoint != "" {
+            postData(client, url + endpoint)
         }
-        postData(client, url, js)
     }
 }
 
 func main() {
-    file, err := os.Open("workfiles/10userWorkLoad")
+    file, err := os.Open("../../workfiles/10userWorkLoad")
     if err != nil {
         log.Fatal(err)
     }
     defer file.Close()
 
-    url := "http://0.0.0.0:8000"
+    url := "http://0.0.0.0:8888"
     allCmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
