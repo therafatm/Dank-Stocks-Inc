@@ -7,6 +7,7 @@ import (
     "bufio"
     "sync"
     "time"
+    "flag"
     "log"
     "fmt"
     "os"
@@ -20,10 +21,11 @@ func postData(client *http.Client, url string){
     }
     req.Header.Set("Connection", "keep-alive")
     resp, err := client.Do(req)
-    defer resp.Body.Close()
     if err != nil {
         log.Fatal(err)
     }
+    defer resp.Body.Close()
+
 
     fmt.Printf("Sent request %s\n", url)
     body, err := ioutil.ReadAll(resp.Body)
@@ -46,13 +48,18 @@ func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
 }
 
 func main() {
-    file, err := os.Open("../../workfiles/10userWorkLoad")
+    var host = flag.String("host", "0.0.0.0", "hostname of target")
+    var port = flag.String("port", "8888", "port to target")
+    var filename = flag.String("filepath", "../../workfiles/1userWorkLoad", "path to workload file")
+    flag.Parse()
+
+    file, err := os.Open(*filename)
     if err != nil {
         log.Fatal(err)
     }
     defer file.Close()
 
-    url := "http://0.0.0.0:8888"
+    url := fmt.Sprintf("http://%s:%s", *host, *port)
     allCmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
