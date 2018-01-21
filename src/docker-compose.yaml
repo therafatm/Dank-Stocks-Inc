@@ -52,3 +52,28 @@ services:
       - QUOTE_SERVER_HOST=quoteserver
       - QUOTE_SERVER_PORT=8000
 
+
+  test:
+    volumes:
+      - ./test:/go/src/test_dev
+
+    working_dir: /go/src/test_dev
+
+    build: ./test
+
+    links:
+        - transaction:transaction
+        - quote_server_mock:quoteserver
+
+    depends_on:
+      - transaction
+
+    environment:
+      - TRANS_HOST=transaction
+      - TRANS_PORT=8888
+      - QUOTE_SERVER_HOST=quoteserver
+      - QUOTE_SERVER_PORT=8000
+  
+    entrypoint:  bash -c "while ! ping -c 1 -n -w 1 transaction:8888 &> /dev/null; do echo sleeping; sleep 1; done; echo Connected!; go test ./...;"
+    
+  
