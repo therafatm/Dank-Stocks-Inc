@@ -1,34 +1,49 @@
 version: '3'
 
 services:
+
   db:
     image: postgres:9.5
+
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
     ports:
       - "5432:5432"
 
+
   quote_server_mock:
     volumes:
-      - ./quote_server_mock:/go/src/quote_server_mock
-    working_dir: /go/src/quote_server_mock
+      - ./quote_server_mock:/go/src/quote_server_mock_dev
+
+    working_dir: /go/src/quote_server_mock_dev
+
     build: ./quote_server_mock
-    env_file:
-      - vars.env
+
     ports:
       - "8000:8000"
 
+
   transaction:
+
     volumes:
-      - ./transaction_service:/go/src/transaction_service
-    working_dir: /go/src/transaction_service
+      - ./transaction_service:/go/src/transaction_service_dev
+
+    working_dir: /go/src/transaction_service_dev
+
     build: ./transaction_service
-    env_file:
-      - vars.env
+
     ports:
       - "8888:8888"
+
     links:
         - db:database
         - quote_server_mock:quote_server_mock
 
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=transactions
+      - DB_PORT=5432
 
