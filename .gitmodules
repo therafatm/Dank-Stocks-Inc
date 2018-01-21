@@ -1,9 +1,7 @@
-[submodule "src/transaction-service"]
-	path = src/transaction-service
+[submodule "src/transaction_service"]
+	path = src/transaction_service
 	url = https://github.com/therafatm/transaction-service
-[submodule "src/quote-server-mock"]
-	path = src/quote-server-mock
+[submodule "src/quote_server_mock"]
+	path = src/quote_server_mock
 	url = https://github.com/therafatm/quote-server-mock
-[submodule "src/--force"]
-	path = src/--force
-	url = https://github.com/therafatm/quote-server-mock
+
