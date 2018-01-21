@@ -2,7 +2,11 @@ version: '3'
 
 services:
   db:
-    image: postgres
+    image: postgres:9.5
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
 
   transaction:
     working_dir: /go/src/transaction_service
@@ -11,11 +15,15 @@ services:
     build: ./transaction_service
     ports:
       - "8888:8888"
+    env_file:
+      - vars.env
 
   qoute_server_mock:
     working_dir: /go/src/quote_server_mock
     volumes: 
       - ./quote_server_mock:/go/src/quote_server_mock
     build: ./quote_server_mock
+    env_file:
+      - vars.env
     ports:
       - "8000:8000"
