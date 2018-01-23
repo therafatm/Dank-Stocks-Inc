@@ -3,10 +3,9 @@ version: '3'
 services:
   test:
     volumes:
-      - ./test:/go/src/test_dev
+      - ./test:/go/src/test
 
-    working_dir: /go/src/test_dev
-
+    working_dir: /go/src/test
     build: ./test
 
     links:
@@ -21,7 +20,3 @@ services:
       - TRANS_PORT=8888
       - QUOTE_SERVER_HOST=quoteserver
       - QUOTE_SERVER_PORT=8000
-  
-    entrypoint:  bash -c "while ! ping -c 1 -n -w 1 transaction:8888 &> /dev/null; do echo sleeping; sleep 1; done; echo Connected!; go test ./...;"
-    
-  
