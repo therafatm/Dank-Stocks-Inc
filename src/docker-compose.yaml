@@ -14,11 +14,13 @@ services:
 
   quote_server_mock:
     volumes:
-      - ./quote_server_mock:/go/src/quote_server_mock_dev
+      - ./quote_server_mock:/go/src/quote_server_mock
 
-    working_dir: /go/src/quote_server_mock_dev
+    working_dir: /go/src/quote_server_mock
 
     build: ./quote_server_mock
+
+    entrypoint: go run app.go
 
     ports:
       - "8000:8000"
@@ -30,9 +32,9 @@ services:
   transaction:
 
     volumes:
-      - ./transaction_service:/go/src/transaction_service_dev
+      - ./transaction_service:/go/src/transaction_service
 
-    working_dir: /go/src/transaction_service_dev
+    working_dir: /go/src/transaction_service
 
     build: ./transaction_service
 
@@ -42,6 +44,11 @@ services:
     links:
         - db:database
         - quote_server_mock:quoteserver
+
+    entrypoint: ./wait-for-it.sh database:5432 -- go run app.go
+
+    command: go run app.go
+
 
     environment:
       - POSTGRES_HOST=database
