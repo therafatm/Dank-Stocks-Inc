@@ -41,11 +41,14 @@ services:
     ports:
       - "8888:8888"
 
+    depends_on:
+      - db
+
     links:
         - db:database
         - quote_server_mock:quoteserver
 
-    entrypoint: ./wait-for-it.sh database:5432 -- go run app.go
+    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- go run app.go
 
     command: go run app.go
 

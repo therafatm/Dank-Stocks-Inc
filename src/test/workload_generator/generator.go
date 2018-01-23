@@ -1,4 +1,4 @@
-package main
+package workload_generator
 
 import (
     "net/http"
@@ -11,7 +11,7 @@ import (
     "log"
     "fmt"
     "os"
-    "./commands"
+    "test/workload_generator/commands"
 )
 
 func postData(client *http.Client, url string){

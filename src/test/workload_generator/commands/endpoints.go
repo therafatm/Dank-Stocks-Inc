@@ -26,7 +26,7 @@ func FormatCommandEndpoint(cmd Command) string {
 			return fmt.Sprintf("/api/commitSell/%s", cmd.Username)
 
         case "CANCEL_BUY":
-            return 
+            return ""
 
         case "CANCEL_SELL":
             return ""

@@ -6,5 +6,5 @@ services:
 
 
   transaction:
-    entrypoint: ./wait-for-it.sh database:5432 -- fresh app.go
+    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- fresh app.go
     
