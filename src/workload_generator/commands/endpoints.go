@@ -26,7 +26,7 @@ func FormatCommandEndpoint(cmd Command) string {
 			return fmt.Sprintf("/api/commitSell/%s", cmd.Username)
 
         case "CANCEL_BUY":
-            return ""
+            return 
 
         case "CANCEL_SELL":
             return ""
@@ -35,22 +35,22 @@ func FormatCommandEndpoint(cmd Command) string {
             return ""
             
         case "SET_BUY_TRIGGER":
-            return ""
+            return fmt.Sprintf("/api/setBuyTrigger/%s/%s/%s", cmd.Username, cmd.Symbol, cmd.Amount)
             
         case "SET_SELL_TRIGGER":
-            return ""
+            return fmt.Sprintf("/api/setSellTrigger/%s/%s/%s", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "CANCEL_SET_BUY":
-            return ""
+            return fmt.Sprintf("/api/cancelSetBuy/%s/%s", cmd.Username, cmd.Symbol)
 
         case "CANCEL_SET_SELL":
-            return ""
+            return fmt.Sprintf("/api/cancelSetSell/%s/%s", cmd.Username, cmd.Symbol)
 
         case "SET_BUY_AMOUNT":
-            return ""
+            return fmt.Sprintf("/api/setBuyAmount/%s/%s/%s", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "SET_SELL_AMOUNT":
-            return ""
+            return fmt.Sprintf("/api/setSellAmount/%s/%s/%s", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "DUMPLOG":
             return ""
