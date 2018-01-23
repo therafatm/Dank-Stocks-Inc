@@ -13,7 +13,7 @@ CREATE TABLE Users (
 CREATE TABLE Stocks (
     sid serial PRIMARY KEY,
     username VARCHAR(50) REFERENCES Users(username),
-    symbol VARCHAR(10) NOT NULL UNIQUE,
+    symbol VARCHAR(10) NOT NULL,
     shares INTEGER NOT NULL
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE Reservations (
     symbol VARCHAR(10),
     type VARCHAR(10),
     shares INTEGER NOT NULL,
-    face_value DOUBLE PRECISION NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
     time BIGINT NOT NULL
 );
 
