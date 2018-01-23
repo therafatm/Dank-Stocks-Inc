@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  quote_server_mock:
+    entrypoint: fresh app.go
+
+
+  transaction:
+    entrypoint: fresh app.go
+    

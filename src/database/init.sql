@@ -26,3 +26,13 @@ CREATE TABLE Reservations (
     face_value DOUBLE PRECISION NOT NULL,
     time BIGINT NOT NULL
 );
+
+CREATE TABLE Triggers (
+    tid serial PRIMARY KEY,
+    username VARCHAR(50) REFERENCES Users(username),
+    symbol VARCHAR(10) NOT NULL,
+    type VARCHAR(10) NOT NULL,
+    amount DOUBLE PRECISION,
+    shares INTEGER,
+    trigger_price DOUBLE PRECISION
+);
