@@ -45,7 +45,10 @@ services:
         - db:database
         - quote_server_mock:quoteserver
 
-    entrypoint: go run app.go
+    entrypoint: ./wait-for-it.sh database:5432 -- go run app.go
+
+    command: go run app.go
+
 
     environment:
       - POSTGRES_HOST=database

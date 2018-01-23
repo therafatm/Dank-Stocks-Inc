@@ -6,5 +6,5 @@ services:
 
 
   transaction:
-    entrypoint: fresh app.go
+    entrypoint: ./wait-for-it.sh database:5432 -- fresh app.go
     
