@@ -7,6 +7,9 @@ import (
 
 func FormatCommandEndpoint(cmd Command) string {
     switch cmd.Name {
+        case "BALANCE": 
+            return fmt.Sprintf("/api/availableBalance/%s", cmd.Username)
+
         case "ADD":
            return fmt.Sprintf("/api/add/%s/%d", cmd.Username, cmd.Amount)
 
