@@ -8,16 +8,16 @@ import (
 func FormatCommandEndpoint(cmd Command) string {
     switch cmd.Name {
         case "ADD":
-           return fmt.Sprintf("/api/addUser/%s/%f", cmd.Username, cmd.Amount)
+           return fmt.Sprintf("/api/add/%s/%d", cmd.Username, cmd.Amount)
 
         case "QUOTE":
 			return fmt.Sprintf("/api/getQuote/%s/%s", cmd.Username, cmd.Symbol)
 
         case "BUY":
-			return fmt.Sprintf("/api/buyOrder/%s/%s/%f", cmd.Username, cmd.Symbol, cmd.Amount)
+			return fmt.Sprintf("/api/buy/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "SELL":
-			return fmt.Sprintf("/api/sellOrder/%s/%s/%f", cmd.Username, cmd.Symbol, cmd.Amount)
+			return fmt.Sprintf("/api/sellOrder/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "COMMIT_BUY":
 			return fmt.Sprintf("/api/commitBuy/%s", cmd.Username)    

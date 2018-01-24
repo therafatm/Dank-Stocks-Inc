@@ -62,7 +62,7 @@ func main() {
     url := fmt.Sprintf("http://%s:%s", *host, *port)
     allCmds := make([]commands.Command, 0)
 
-    replacer := strings.NewReplacer("[", "", "]", "", ",", " ")
+    replacer := strings.NewReplacer("[", "", "]", "", ".", "", ",", " ")
     scanner := bufio.NewScanner(file)
 
     for scanner.Scan() {

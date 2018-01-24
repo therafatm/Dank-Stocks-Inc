@@ -9,12 +9,12 @@ type Command struct {
     Name string     `json:"name,omitempty"`
     Username string `json:"username,omitempty"`
     Symbol string   `json:"symbol,omitempty"`
-    Amount float64  `json:"amount,omitempty"`
+    Amount int      `json:"amount,omitempty"`
     Filename string `json:"filename,omitempty"`
 }
 
 func parseCommandUserSymbolAmount(data []string) Command {
-	amount, err := strconv.ParseFloat(data[4], 64)
+	amount, err := strconv.Atoi(data[4])
     if err != nil{
         log.Fatalf("Could not parse Amount: %s \n %s" , data[4], data)
     }
@@ -22,7 +22,7 @@ func parseCommandUserSymbolAmount(data []string) Command {
 }
 
 func parseCommandUserAmount(data []string) Command {
-	amount, err := strconv.ParseFloat(data[3], 64)
+	amount, err := strconv.Atoi(data[3])
     if err != nil{
         log.Fatalf("Could not parse Amount: %s \n %s" , data[3], data)
     }

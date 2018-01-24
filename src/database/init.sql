@@ -7,32 +7,33 @@ GRANT ALL PRIVILEGES ON DATABASE transactions TO seng468;
 CREATE TABLE Users (
     uid serial PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    money DOUBLE PRECISION NOT NULL
+    money INTEGER NOT NULL
 );
 
 CREATE TABLE Stocks (
     sid serial PRIMARY KEY,
-    username VARCHAR(50) REFERENCES Users(username),
+    username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     symbol VARCHAR(10) NOT NULL,
     shares INTEGER NOT NULL
 );
 
 CREATE TABLE Reservations (
     rid serial PRIMARY KEY,
-    username VARCHAR(50) REFERENCES Users(username),
+    username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     symbol VARCHAR(10),
     type VARCHAR(10),
     shares INTEGER NOT NULL,
-    amount DOUBLE PRECISION NOT NULL,
-    time BIGINT NOT NULL
+    amount INTEGER NOT NULL,
+    time BIGINT NOT NULL,
+    CONSTRAINT Reservation_Uniq UNIQUE (rid, username, symbol)
 );
 
 CREATE TABLE Triggers (
     tid serial PRIMARY KEY,
-    username VARCHAR(50) REFERENCES Users(username),
+    username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     symbol VARCHAR(10) NOT NULL,
     type VARCHAR(10) NOT NULL,
-    amount DOUBLE PRECISION,
+    amount INTEGER,
     shares INTEGER,
-    trigger_price DOUBLE PRECISION
+    trigger_price INTEGER
 );
