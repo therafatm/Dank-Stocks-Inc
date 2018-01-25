@@ -132,6 +132,36 @@ func cancelSell(e *httpexpect.Expect, username string, status int) (obj *httpexp
 	return
 }
 
+func setBuyAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "SET_BUY_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
+func setBuyTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "SET_BUY_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
+func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "CANCEL_SET_BUY", Username: username, Symbol: testSymbol }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
 func TestAddUser(t *testing.T) {
 	e := initTest(t)
 
@@ -414,7 +444,6 @@ func TestCancelSell(t *testing.T) {
 	e := initTest(t)
 
 	// buy 3 and cancel 3 should work like stack 1 2 3 -> 3 2 1
-
 	sharesForMoney := 100
 	numShares1 := 1
 	numShares2 := 2
@@ -460,4 +489,65 @@ func TestCancelSell(t *testing.T) {
 	checkAvailableShares(e, username, testSymbol, 0)
 }	
 
+//TODO: add some balance checking
+func TestSetTrigger(t *testing.T) {
+	e := initTest(t)
+	sharesForMoney := 10
 
+	amount := testPrice * sharesForMoney
+	add(e, username, amount, http.StatusOK)
+	obj := setBuyAmount(e, username, testSymbol, amount, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("executable", false)
+
+	obj = setBuyAmount(e, username, testSymbol, amount, http.StatusInternalServerError)
+
+	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("executable", false)
+
+	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+
+	obj = setBuyTrigger(e, username, testSymbol, testPrice, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+
+
+	obj = setBuyAmount(e, username, testSymbol, amount, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("executable", false)
+
+	obj = setBuyTrigger(e, username, testSymbol, testPrice, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("triggerprice", testPrice)
+	obj.ValueEqual("executable", true)
+
+	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("triggerprice", testPrice)
+	obj.ValueEqual("executable", true)
+
+
+	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+}

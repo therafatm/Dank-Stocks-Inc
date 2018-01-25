@@ -14,14 +14,15 @@ CREATE TABLE Stocks (
     sid serial PRIMARY KEY,
     username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     symbol VARCHAR(10) NOT NULL,
-    shares INTEGER NOT NULL
+    shares INTEGER NOT NULL,
+    UNIQUE (username, symbol)
 );
 
 CREATE TABLE Reservations (
     rid serial PRIMARY KEY,
     username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
-    symbol VARCHAR(10),
-    type VARCHAR(10),
+    symbol VARCHAR(10) NOT NULL,
+    type VARCHAR(10) NOT NULL,
     shares INTEGER NOT NULL,
     amount INTEGER NOT NULL,
     time BIGINT NOT NULL
@@ -32,7 +33,10 @@ CREATE TABLE Triggers (
     username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
     symbol VARCHAR(10) NOT NULL,
     type VARCHAR(10) NOT NULL,
-    amount INTEGER,
-    shares INTEGER,
-    trigger_price INTEGER
+    amount INTEGER NOT NULL,
+    shares INTEGER NOT NULL,
+    trigger_price INTEGER NOT NULL,
+    executable BOOLEAN NOT NULL,
+    time BIGINT NOT NULL,
+    UNIQUE (username, symbol, type)
 );
