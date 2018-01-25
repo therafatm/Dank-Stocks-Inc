@@ -202,37 +202,105 @@ func TestBuy(t *testing.T) {
 	obj.Keys().ContainsOnly("error", "message")
 }
 
+
+func TestMultiBuy(t *testing.T) {
+	e := initTest(t)
+
+	// buy 3 and commit 3 should work like stack 1 2 3 -> 3 2 1
+
+	sharesForMoney := 100
+	numShares1 := 1
+	numShares2 := 2
+	numShares3 := 3
+
+	amount := testPrice * sharesForMoney
+	add(e, username, amount, http.StatusOK)
+	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+
+	checkAvailableShares(e, username, testSymbol, 0)
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+
+	obj := commitBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares3)
+
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableShares(e, username, testSymbol, numShares3)
+
+	obj = commitBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares3 + numShares2)
+
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2)
+
+	obj = commitBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares3 + numShares2 + numShares1)
+
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2 + numShares1)
+}
+
+
 func TestCancelBuy(t *testing.T) {
 	e := initTest(t)
 
-	// initial buy
+	// buy 3 and cancel 3 should work like stack 1 2 3 -> 3 2 1
+
 	sharesForMoney := 100
-	numShares := 3
+	numShares1 := 1
+	numShares2 := 2
+	numShares3 := 3
 
 	amount := testPrice * sharesForMoney
-	obj := add(e, username, amount, http.StatusOK)
+	add(e, username, amount, http.StatusOK)
+	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
 
-	obj = buy(e, username, testSymbol, 1 * testPrice, http.StatusOK)
-	obj = buy(e, username, testSymbol, 2 * testPrice, http.StatusOK)
-	obj = buy(e, username, testSymbol, numShares * testPrice, http.StatusOK)
+	obj := cancelBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares3)
+	obj.ValueEqual("amount", numShares3 * testPrice)
+	obj.ValueEqual("type", "BUY")
+
+	checkAvailableBalance(e, username, amount - ((numShares2 + numShares1) * testPrice))
+	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("shares", numShares)
-	obj.ValueEqual("amount", numShares * testPrice)
+	obj.ValueEqual("shares", numShares2)
+	obj.ValueEqual("amount", numShares2 * testPrice)
 	obj.ValueEqual("type", "BUY")
 
+	checkAvailableBalance(e, username, amount - (numShares1 * testPrice))
+	checkAvailableShares(e, username, testSymbol, 0)
 
-	obj = cancelBuy(e, username, http.StatusInternalServerError)
-	obj.Keys().ContainsOnly("error", "message")
+	obj = cancelBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares1)
+	obj.ValueEqual("amount", numShares1 * testPrice)
+	obj.ValueEqual("type", "BUY")
 
 	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
-
-
 }	
+
 
 func TestSell(t *testing.T) {
 	e := initTest(t)
@@ -291,3 +359,105 @@ func TestSell(t *testing.T) {
 	checkAvailableShares(e, username, testSymbol, 0)
 	checkAvailableBalance(e, username, amount)
 }
+
+
+func TestMultiSell(t *testing.T) {
+	e := initTest(t)
+	// sell 3 and commit 3 should work like stack 1 2 3 -> 3 2 1
+
+	sharesForMoney := 100
+	numShares1 := 1
+	numShares2 := 2
+	numShares3 := 3
+
+	amount := testPrice * sharesForMoney
+	add(e, username, amount, http.StatusOK)
+	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	commitBuy(e, username, http.StatusOK)
+	commitBuy(e, username, http.StatusOK)
+	commitBuy(e, username, http.StatusOK)
+	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2 + numShares1)
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	sell(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
+	sell(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
+	sell(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+
+	checkAvailableShares(e, username, testSymbol, 0)
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+
+	obj := commitSell(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares2 + numShares1)
+
+	obj = commitSell(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares1)
+
+	obj = commitSell(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", 0)
+
+	checkAvailableShares(e, username, testSymbol, 0)
+	checkAvailableBalance(e, username, amount)
+}
+
+
+func TestCancelSell(t *testing.T) {
+	e := initTest(t)
+
+	// buy 3 and cancel 3 should work like stack 1 2 3 -> 3 2 1
+
+	sharesForMoney := 100
+	numShares1 := 1
+	numShares2 := 2
+	numShares3 := 3
+
+	amount := testPrice * sharesForMoney
+	add(e, username, amount, http.StatusOK)
+	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+
+	obj := cancelBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares3)
+	obj.ValueEqual("amount", numShares3 * testPrice)
+	obj.ValueEqual("type", "BUY")
+
+	checkAvailableBalance(e, username, amount - ((numShares2 + numShares1) * testPrice))
+	checkAvailableShares(e, username, testSymbol, 0)
+
+	obj = cancelBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares2)
+	obj.ValueEqual("amount", numShares2 * testPrice)
+	obj.ValueEqual("type", "BUY")
+
+	checkAvailableBalance(e, username, amount - (numShares1 * testPrice))
+	checkAvailableShares(e, username, testSymbol, 0)
+
+	obj = cancelBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", numShares1)
+	obj.ValueEqual("amount", numShares1 * testPrice)
+	obj.ValueEqual("type", "BUY")
+
+	checkAvailableBalance(e, username, amount)
+	checkAvailableShares(e, username, testSymbol, 0)
+}	
+
+

@@ -24,8 +24,7 @@ CREATE TABLE Reservations (
     type VARCHAR(10),
     shares INTEGER NOT NULL,
     amount INTEGER NOT NULL,
-    time BIGINT NOT NULL,
-    CONSTRAINT Reservation_Uniq UNIQUE (rid, username, symbol)
+    time BIGINT NOT NULL
 );
 
 CREATE TABLE Triggers (
