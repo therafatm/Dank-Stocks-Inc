@@ -10,6 +10,9 @@ func FormatCommandEndpoint(cmd Command) string {
         case "BALANCE": 
             return fmt.Sprintf("/api/availableBalance/%s", cmd.Username)
 
+        case "SHARES": 
+            return fmt.Sprintf("/api/availableShares/%s/%s", cmd.Username, cmd.Symbol)
+
         case "ADD":
            return fmt.Sprintf("/api/add/%s/%d", cmd.Username, cmd.Amount)
 
@@ -20,7 +23,7 @@ func FormatCommandEndpoint(cmd Command) string {
 			return fmt.Sprintf("/api/buy/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "SELL":
-			return fmt.Sprintf("/api/sellOrder/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
+			return fmt.Sprintf("/api/sell/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
 
         case "COMMIT_BUY":
 			return fmt.Sprintf("/api/commitBuy/%s", cmd.Username)    
@@ -29,10 +32,10 @@ func FormatCommandEndpoint(cmd Command) string {
 			return fmt.Sprintf("/api/commitSell/%s", cmd.Username)
 
         case "CANCEL_BUY":
-            return ""
+            return fmt.Sprintf("/api/cancelBuy/%s", cmd.Username)    
 
         case "CANCEL_SELL":
-            return ""
+            return fmt.Sprintf("/api/cancelSell/%s", cmd.Username)
 
         case "DISPLAY_SUMMARY":
             return ""
