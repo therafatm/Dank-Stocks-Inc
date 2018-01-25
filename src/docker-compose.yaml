@@ -1,9 +1,9 @@
-version: '3'
+version: '2'
 
 services:
 
   db:
-    image: postgres:9.5
+    build: ./postgres
 
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -61,4 +61,5 @@ services:
       - DB_PORT=5432
       - QUOTE_SERVER_HOST=quoteserver
       - QUOTE_SERVER_PORT=8000
+      - ENV=prod
 
