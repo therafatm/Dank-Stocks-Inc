@@ -11,6 +11,7 @@ type Command struct {
     Symbol string   `json:"symbol,omitempty"`
     Amount int      `json:"amount,omitempty"`
     Filename string `json:"filename,omitempty"`
+    Tnum string 
 }
 
 func parseCommandUserSymbolAmount(data []string) Command {
@@ -18,7 +19,7 @@ func parseCommandUserSymbolAmount(data []string) Command {
     if err != nil{
         log.Fatalf("Could not parse Amount: %s \n %s" , data[4], data)
     }
-    return Command{Name: data[1], Username: data[2], Symbol: data[3], Amount: amount}
+    return Command{Tnum: data[0], Name: data[1], Username: data[2], Symbol: data[3], Amount: amount}
 }
 
 func parseCommandUserAmount(data []string) Command {
@@ -26,15 +27,15 @@ func parseCommandUserAmount(data []string) Command {
     if err != nil{
         log.Fatalf("Could not parse Amount: %s \n %s" , data[3], data)
     }
-    return Command{Name: data[1], Username: data[2], Amount: amount}
+    return Command{Tnum: data[0], Name: data[1], Username: data[2], Amount: amount}
 }
 
 func parseCommandUserSymbol(data []string) Command {
-    return Command{Name: data[1], Username: data[2], Symbol: data[3]}
+    return Command{Tnum: data[0], Name: data[1], Username: data[2], Symbol: data[3]}
 }
  
 func parseCommandUser(data []string) Command {
-    return Command{Name: data[1], Username: data[2]}
+    return Command{Tnum: data[0], Name: data[1], Username: data[2]}
 }
 
 func ParseAdd(data []string) Command {

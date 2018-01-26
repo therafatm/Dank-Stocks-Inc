@@ -5,7 +5,6 @@ import (
 	"testing"
 	"fmt"
 	"os"
-
 	"test/workload_generator/commands"
 	"github.com/gavv/httpexpect"
 )
@@ -35,7 +34,7 @@ func initTest(t *testing.T) (e *httpexpect.Expect){
 }
 
 func checkAvailableBalance(e *httpexpect.Expect, username string, expected int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "BALANCE", Username: username }
+	cmd := commands.Command{ Name: "BALANCE", Username: username, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -48,7 +47,7 @@ func checkAvailableBalance(e *httpexpect.Expect, username string, expected int) 
 }
 
 func checkAvailableShares(e *httpexpect.Expect, username string, symbol string, expected int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SHARES", Username: username, Symbol: symbol }
+	cmd := commands.Command{ Name: "SHARES", Username: username, Symbol: symbol, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -62,7 +61,7 @@ func checkAvailableShares(e *httpexpect.Expect, username string, symbol string, 
 
 
 func add(e *httpexpect.Expect, username string, amount int,  status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "ADD", Username: username, Amount: amount }
+	cmd := commands.Command{ Name: "ADD", Username: username, Amount: amount, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -72,7 +71,7 @@ func add(e *httpexpect.Expect, username string, amount int,  status int) (obj *h
 }
 
 func buy(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "BUY", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "BUY", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -82,7 +81,7 @@ func buy(e *httpexpect.Expect, username string, symbol string, amount int, statu
 }
 
 func sell(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SELL", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "SELL", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -92,7 +91,7 @@ func sell(e *httpexpect.Expect, username string, symbol string, amount int, stat
 }
 
 func commitBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "COMMIT_BUY", Username: username}
+	cmd := commands.Command{ Name: "COMMIT_BUY", Username: username, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -102,7 +101,7 @@ func commitBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpe
 }
 
 func cancelBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_BUY", Username: username}
+	cmd := commands.Command{ Name: "CANCEL_BUY", Username: username, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -113,7 +112,7 @@ func cancelBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpe
 
 
 func commitSell(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "COMMIT_SELL", Username: username}
+	cmd := commands.Command{ Name: "COMMIT_SELL", Username: username, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -123,7 +122,7 @@ func commitSell(e *httpexpect.Expect, username string, status int) (obj *httpexp
 }
 
 func cancelSell(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SELL", Username: username}
+	cmd := commands.Command{ Name: "CANCEL_SELL", Username: username, Tnum:"0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -133,7 +132,7 @@ func cancelSell(e *httpexpect.Expect, username string, status int) (obj *httpexp
 }
 
 func setBuyAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_BUY_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "SET_BUY_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0"}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -143,7 +142,7 @@ func setBuyAmount(e *httpexpect.Expect, username string, symbol string, amount i
 }
 
 func setBuyTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_BUY_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "SET_BUY_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -153,7 +152,7 @@ func setBuyTrigger(e *httpexpect.Expect, username string, symbol string, amount 
 }
 
 func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SET_BUY", Username: username, Symbol: testSymbol }
+	cmd := commands.Command{ Name: "CANCEL_SET_BUY", Username: username, Symbol: testSymbol, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -163,7 +162,7 @@ func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, stat
 }
 
 func setSellAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_SELL_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "SET_SELL_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -173,7 +172,7 @@ func setSellAmount(e *httpexpect.Expect, username string, symbol string, amount 
 }
 
 func cancelSellTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SET_SELL", Username: username, Symbol: testSymbol }
+	cmd := commands.Command{ Name: "CANCEL_SET_SELL", Username: username, Symbol: testSymbol, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -183,7 +182,7 @@ func cancelSellTrigger(e *httpexpect.Expect, username string, symbol string, sta
 }
 
 func setSellTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_SELL_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount }
+	cmd := commands.Command{ Name: "SET_SELL_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount , Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -194,7 +193,7 @@ func setSellTrigger(e *httpexpect.Expect, username string, symbol string, amount
 
 
 func executeTriggers(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Array) {
-	cmd := commands.Command{ Name: "EXECUTE_TRIGGERS", Username: username }
+	cmd := commands.Command{ Name: "EXECUTE_TRIGGERS", Username: username, Tnum: "0" }
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -228,7 +227,7 @@ func TestAddUser(t *testing.T) {
 
 	//bad amount
 	fAmount := 200.23
-	endpoint := fmt.Sprintf("/api/add/%s/%f",username , fAmount)
+	endpoint := fmt.Sprintf("/api/add/%s/%f/0",username , fAmount)
 	obj = e.GET(endpoint).
 		Expect().
 		Status(http.StatusInternalServerError).
