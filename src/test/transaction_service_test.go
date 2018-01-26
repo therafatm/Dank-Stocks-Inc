@@ -1,31 +1,38 @@
 package test
 
 import (
-	"net/http"
-	"testing"
 	"fmt"
-	"os"
-	"test/workload_generator/commands"
 	"github.com/gavv/httpexpect"
+	"net/http"
+	"os"
+	"strconv"
+	"test/workload_generator/commands"
+	"testing"
 )
 
-
 var (
-	url string
+	url      string
 	username string
 )
 
-const testPrice = 213223
-const testSymbol = "TEST"
+const testPrice = 20000
+const testSymbol = "TST"
+
+var trans = 0
+
+func getTrans() string {
+	trans += 1
+	return strconv.Itoa(trans)
+}
 
 func init() {
-   	host := os.Getenv("TRANS_HOST")
+	host := os.Getenv("TRANS_HOST")
 	port := os.Getenv("TRANS_PORT")
 	url = fmt.Sprintf("http://%s:%s", host, port)
 	username = "testuser"
 }
 
-func initTest(t *testing.T) (e *httpexpect.Expect){
+func initTest(t *testing.T) (e *httpexpect.Expect) {
 	e = httpexpect.New(t, url)
 	e.GET("/api/clearUsers").
 		Expect().
@@ -34,7 +41,7 @@ func initTest(t *testing.T) (e *httpexpect.Expect){
 }
 
 func checkAvailableBalance(e *httpexpect.Expect, username string, expected int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "BALANCE", Username: username, Tnum: "0"}
+	cmd := commands.Command{Name: "BALANCE", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -47,7 +54,7 @@ func checkAvailableBalance(e *httpexpect.Expect, username string, expected int) 
 }
 
 func checkAvailableShares(e *httpexpect.Expect, username string, symbol string, expected int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SHARES", Username: username, Symbol: symbol, Tnum: "0"}
+	cmd := commands.Command{Name: "SHARES", Username: username, Symbol: symbol, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -59,9 +66,8 @@ func checkAvailableShares(e *httpexpect.Expect, username string, symbol string, 
 	return
 }
 
-
-func add(e *httpexpect.Expect, username string, amount int,  status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "ADD", Username: username, Amount: amount, Tnum: "0" }
+func add(e *httpexpect.Expect, username string, amount int, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{Name: "ADD", Username: username, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -71,7 +77,7 @@ func add(e *httpexpect.Expect, username string, amount int,  status int) (obj *h
 }
 
 func buy(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "BUY", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
+	cmd := commands.Command{Name: "BUY", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -81,7 +87,7 @@ func buy(e *httpexpect.Expect, username string, symbol string, amount int, statu
 }
 
 func sell(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SELL", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
+	cmd := commands.Command{Name: "SELL", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -91,7 +97,7 @@ func sell(e *httpexpect.Expect, username string, symbol string, amount int, stat
 }
 
 func commitBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "COMMIT_BUY", Username: username, Tnum: "0"}
+	cmd := commands.Command{Name: "COMMIT_BUY", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -101,7 +107,7 @@ func commitBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpe
 }
 
 func cancelBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_BUY", Username: username, Tnum: "0"}
+	cmd := commands.Command{Name: "CANCEL_BUY", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -110,9 +116,8 @@ func cancelBuy(e *httpexpect.Expect, username string, status int) (obj *httpexpe
 	return
 }
 
-
 func commitSell(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "COMMIT_SELL", Username: username, Tnum: "0"}
+	cmd := commands.Command{Name: "COMMIT_SELL", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -122,7 +127,7 @@ func commitSell(e *httpexpect.Expect, username string, status int) (obj *httpexp
 }
 
 func cancelSell(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SELL", Username: username, Tnum:"0"}
+	cmd := commands.Command{Name: "CANCEL_SELL", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -132,7 +137,7 @@ func cancelSell(e *httpexpect.Expect, username string, status int) (obj *httpexp
 }
 
 func setBuyAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_BUY_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0"}
+	cmd := commands.Command{Name: "SET_BUY_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -142,7 +147,7 @@ func setBuyAmount(e *httpexpect.Expect, username string, symbol string, amount i
 }
 
 func setBuyTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_BUY_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
+	cmd := commands.Command{Name: "SET_BUY_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -152,7 +157,7 @@ func setBuyTrigger(e *httpexpect.Expect, username string, symbol string, amount 
 }
 
 func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SET_BUY", Username: username, Symbol: testSymbol, Tnum: "0" }
+	cmd := commands.Command{Name: "CANCEL_SET_BUY", Username: username, Symbol: testSymbol, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -162,7 +167,7 @@ func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, stat
 }
 
 func setSellAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_SELL_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: "0" }
+	cmd := commands.Command{Name: "SET_SELL_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -172,7 +177,7 @@ func setSellAmount(e *httpexpect.Expect, username string, symbol string, amount 
 }
 
 func cancelSellTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "CANCEL_SET_SELL", Username: username, Symbol: testSymbol, Tnum: "0" }
+	cmd := commands.Command{Name: "CANCEL_SET_SELL", Username: username, Symbol: testSymbol, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -182,7 +187,7 @@ func cancelSellTrigger(e *httpexpect.Expect, username string, symbol string, sta
 }
 
 func setSellTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
-	cmd := commands.Command{ Name: "SET_SELL_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount , Tnum: "0" }
+	cmd := commands.Command{Name: "SET_SELL_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -191,9 +196,8 @@ func setSellTrigger(e *httpexpect.Expect, username string, symbol string, amount
 	return
 }
 
-
 func executeTriggers(e *httpexpect.Expect, username string, status int) (obj *httpexpect.Array) {
-	cmd := commands.Command{ Name: "EXECUTE_TRIGGERS", Username: username, Tnum: "0" }
+	cmd := commands.Command{Name: "EXECUTE_TRIGGERS", Username: username, Tnum: getTrans()}
 	endpoint := commands.FormatCommandEndpoint(cmd)
 	obj = e.GET(endpoint).
 		Expect().
@@ -201,7 +205,6 @@ func executeTriggers(e *httpexpect.Expect, username string, status int) (obj *ht
 		JSON().Array()
 	return
 }
-
 
 func TestAddUser(t *testing.T) {
 	e := initTest(t)
@@ -217,17 +220,17 @@ func TestAddUser(t *testing.T) {
 	checkAvailableBalance(e, username, amount)
 
 	//update
-	addAmount :=  20023
+	addAmount := 20023
 	obj = add(e, username, addAmount, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "money")
 	obj.ValueEqual("username", username)
-	obj.ValueEqual("money", amount + addAmount)
+	obj.ValueEqual("money", amount+addAmount)
 
-	checkAvailableBalance(e, username, amount + addAmount)
+	checkAvailableBalance(e, username, amount+addAmount)
 
 	//bad amount
 	fAmount := 200.23
-	endpoint := fmt.Sprintf("/api/add/%s/%f/0",username , fAmount)
+	endpoint := fmt.Sprintf("/api/add/%s/%f/0", username, fAmount)
 	obj = e.GET(endpoint).
 		Expect().
 		Status(http.StatusInternalServerError).
@@ -236,25 +239,24 @@ func TestAddUser(t *testing.T) {
 	obj.Keys().ContainsOnly("error", "message")
 }
 
-
 func TestBuy(t *testing.T) {
 	e := initTest(t)
 
 	// initial buy
 	sharesToBuy := 10
 
-	amount := testPrice * sharesToBuy 
+	amount := testPrice * sharesToBuy
 	obj := add(e, username, amount, http.StatusOK)
 
 	// buy make sure remainder is discarded
 	actualShares := sharesToBuy - 1
-	obj = buy(e, username, testSymbol, amount - 1, http.StatusOK)
+	obj = buy(e, username, testSymbol, amount-1, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("shares", actualShares)
-	obj.ValueEqual("amount", actualShares * testPrice)
+	obj.ValueEqual("amount", actualShares*testPrice)
 
 	checkAvailableBalance(e, username, amount)
 	// commit buy order
@@ -264,20 +266,20 @@ func TestBuy(t *testing.T) {
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", actualShares)
 
-	checkAvailableBalance(e, username, amount  - (testPrice * actualShares))
+	checkAvailableBalance(e, username, amount-(testPrice*actualShares))
 	checkAvailableShares(e, username, testSymbol, actualShares)
 
 	// not enough money buy
-	obj = buy(e, username, testSymbol, testPrice * sharesToBuy, http.StatusInternalServerError)
+	obj = buy(e, username, testSymbol, testPrice*sharesToBuy, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
 }
 
-func TestBuyCommitNotEnoughMoney(t *testing.T){
+func TestBuyCommitNotEnoughMoney(t *testing.T) {
 	e := initTest(t)
 
 	// initial buy
 	sharesToBuy := 10
-	amount := testPrice * sharesToBuy 
+	amount := testPrice * sharesToBuy
 	obj := add(e, username, amount, http.StatusOK)
 
 	obj = buy(e, username, testSymbol, amount, http.StatusOK)
@@ -287,7 +289,6 @@ func TestBuyCommitNotEnoughMoney(t *testing.T){
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("shares", sharesToBuy)
 	obj.ValueEqual("amount", amount)
-
 
 	obj = buy(e, username, testSymbol, amount, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
@@ -311,7 +312,6 @@ func TestBuyCommitNotEnoughMoney(t *testing.T){
 	obj.Keys().ContainsOnly("error", "message")
 }
 
-
 func TestMultiBuy(t *testing.T) {
 	e := initTest(t)
 
@@ -324,9 +324,9 @@ func TestMultiBuy(t *testing.T) {
 
 	amount := testPrice * sharesForMoney
 	add(e, username, amount, http.StatusOK)
-	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares1*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3*testPrice, http.StatusOK)
 
 	checkAvailableShares(e, username, testSymbol, 0)
 	checkAvailableBalance(e, username, amount)
@@ -337,28 +337,27 @@ func TestMultiBuy(t *testing.T) {
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares3)
 
-	checkAvailableBalance(e, username, amount - ((numShares3) * testPrice))
+	checkAvailableBalance(e, username, amount-((numShares3)*testPrice))
 	checkAvailableShares(e, username, testSymbol, numShares3)
 
 	obj = commitBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("shares", numShares3 + numShares2)
+	obj.ValueEqual("shares", numShares3+numShares2)
 
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2) * testPrice))
-	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2)
+	checkAvailableBalance(e, username, amount-((numShares3+numShares2)*testPrice))
+	checkAvailableShares(e, username, testSymbol, numShares3+numShares2)
 
 	obj = commitBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("shares", numShares3 + numShares2 + numShares1)
+	obj.ValueEqual("shares", numShares3+numShares2+numShares1)
 
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
-	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2 + numShares1)
+	checkAvailableBalance(e, username, amount-((numShares3+numShares2+numShares1)*testPrice))
+	checkAvailableShares(e, username, testSymbol, numShares3+numShares2+numShares1)
 }
-
 
 func TestCancelBuy(t *testing.T) {
 	e := initTest(t)
@@ -372,16 +371,16 @@ func TestCancelBuy(t *testing.T) {
 
 	amount := testPrice * sharesForMoney
 	add(e, username, amount, http.StatusOK)
-	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares1*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3*testPrice, http.StatusOK)
 
 	obj := cancelBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares3)
-	obj.ValueEqual("amount", numShares3 * testPrice)
+	obj.ValueEqual("amount", numShares3*testPrice)
 	obj.ValueEqual("type", "BUY")
 
 	checkAvailableBalance(e, username, amount)
@@ -392,7 +391,7 @@ func TestCancelBuy(t *testing.T) {
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares2)
-	obj.ValueEqual("amount", numShares2 * testPrice)
+	obj.ValueEqual("amount", numShares2*testPrice)
 	obj.ValueEqual("type", "BUY")
 
 	checkAvailableBalance(e, username, amount)
@@ -403,13 +402,12 @@ func TestCancelBuy(t *testing.T) {
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares1)
-	obj.ValueEqual("amount", numShares1 * testPrice)
+	obj.ValueEqual("amount", numShares1*testPrice)
 	obj.ValueEqual("type", "BUY")
 
 	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
-}	
-
+}
 
 func TestSell(t *testing.T) {
 	e := initTest(t)
@@ -417,45 +415,45 @@ func TestSell(t *testing.T) {
 	sharesToBuy := 10
 	sharesToSell := sharesToBuy - 2
 
-	amount := testPrice * sharesToBuy 
+	amount := testPrice * sharesToBuy
 	add(e, username, amount, http.StatusOK)
 	buy(e, username, testSymbol, amount, http.StatusOK)
 	commitBuy(e, username, http.StatusOK)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesToBuy))
+	checkAvailableBalance(e, username, amount-(testPrice*sharesToBuy))
 	checkAvailableShares(e, username, testSymbol, sharesToBuy)
 
-	obj := sell(e, username, testSymbol, sharesToSell * testPrice, http.StatusOK)
+	obj := sell(e, username, testSymbol, sharesToSell*testPrice, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", sharesToSell)
-	obj.ValueEqual("amount", sharesToSell * testPrice)
+	obj.ValueEqual("amount", sharesToSell*testPrice)
 	obj.ValueEqual("type", "SELL")
 
 	checkAvailableShares(e, username, testSymbol, sharesToBuy)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesToBuy))
+	checkAvailableBalance(e, username, amount-(testPrice*sharesToBuy))
 
 	// commit sell order
 	obj = commitSell(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("shares", sharesToBuy - sharesToSell)
+	obj.ValueEqual("shares", sharesToBuy-sharesToSell)
 
-	checkAvailableShares(e, username, testSymbol, sharesToBuy - sharesToSell)
-	checkAvailableBalance(e, username, amount - (testPrice * sharesToBuy) + (sharesToSell * testPrice) )
+	checkAvailableShares(e, username, testSymbol, sharesToBuy-sharesToSell)
+	checkAvailableBalance(e, username, amount-(testPrice*sharesToBuy)+(sharesToSell*testPrice))
 
 	// not enough shares
-	obj = sell(e, username, testSymbol, testPrice * sharesToBuy, http.StatusInternalServerError)
+	obj = sell(e, username, testSymbol, testPrice*sharesToBuy, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
 
 	//sell remaining shares
-	obj = sell(e, username, testSymbol, (sharesToBuy - sharesToSell) * testPrice, http.StatusOK)
+	obj = sell(e, username, testSymbol, (sharesToBuy-sharesToSell)*testPrice, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", (sharesToBuy - sharesToSell))
-	obj.ValueEqual("amount", (sharesToBuy - sharesToSell) * testPrice)
+	obj.ValueEqual("amount", (sharesToBuy-sharesToSell)*testPrice)
 	obj.ValueEqual("type", "SELL")
 
 	// commit sell order
@@ -468,7 +466,6 @@ func TestSell(t *testing.T) {
 	checkAvailableShares(e, username, testSymbol, 0)
 	checkAvailableBalance(e, username, amount)
 }
-
 
 func TestMultiSell(t *testing.T) {
 	e := initTest(t)
@@ -481,26 +478,26 @@ func TestMultiSell(t *testing.T) {
 
 	amount := testPrice * sharesForMoney
 	add(e, username, amount, http.StatusOK)
-	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares1*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3*testPrice, http.StatusOK)
 	commitBuy(e, username, http.StatusOK)
 	commitBuy(e, username, http.StatusOK)
 	commitBuy(e, username, http.StatusOK)
-	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2 + numShares1)
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
-	sell(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
-	sell(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
-	sell(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	checkAvailableShares(e, username, testSymbol, numShares3+numShares2+numShares1)
+	checkAvailableBalance(e, username, amount-((numShares3+numShares2+numShares1)*testPrice))
+	sell(e, username, testSymbol, numShares1*testPrice, http.StatusOK)
+	sell(e, username, testSymbol, numShares2*testPrice, http.StatusOK)
+	sell(e, username, testSymbol, numShares3*testPrice, http.StatusOK)
 
 	checkAvailableShares(e, username, testSymbol, (numShares3 + numShares2 + numShares1))
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount-((numShares3+numShares2+numShares1)*testPrice))
 
 	obj := commitSell(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("shares", numShares2 + numShares1)
+	obj.ValueEqual("shares", numShares2+numShares1)
 
 	obj = commitSell(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
@@ -518,7 +515,6 @@ func TestMultiSell(t *testing.T) {
 	checkAvailableBalance(e, username, amount)
 }
 
-
 func TestCancelSell(t *testing.T) {
 	e := initTest(t)
 
@@ -530,19 +526,19 @@ func TestCancelSell(t *testing.T) {
 
 	amount := testPrice * sharesForMoney
 	add(e, username, amount, http.StatusOK)
-	buy(e, username, testSymbol, numShares1 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
-	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares1*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares2*testPrice, http.StatusOK)
+	buy(e, username, testSymbol, numShares3*testPrice, http.StatusOK)
 
 	obj := cancelBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares3)
-	obj.ValueEqual("amount", numShares3 * testPrice)
+	obj.ValueEqual("amount", numShares3*testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount )
+	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -550,10 +546,10 @@ func TestCancelSell(t *testing.T) {
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares2)
-	obj.ValueEqual("amount", numShares2 * testPrice)
+	obj.ValueEqual("amount", numShares2*testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount )
+	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -561,12 +557,12 @@ func TestCancelSell(t *testing.T) {
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares1)
-	obj.ValueEqual("amount", numShares1 * testPrice)
+	obj.ValueEqual("amount", numShares1*testPrice)
 	obj.ValueEqual("type", "BUY")
 
 	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
-}	
+}
 
 func TestSetBuyTrigger(t *testing.T) {
 	e := initTest(t)
@@ -585,7 +581,7 @@ func TestSetBuyTrigger(t *testing.T) {
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("executable", false)
 
-	checkAvailableBalance(e, username, amount - amount1)
+	checkAvailableBalance(e, username, amount-amount1)
 
 	//duplicate buy amount
 	setBuyAmount(e, username, testSymbol, amount2, http.StatusInternalServerError)
@@ -614,7 +610,7 @@ func TestSetBuyTrigger(t *testing.T) {
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("executable", false)
 
-	checkAvailableBalance(e, username, amount - amount1)
+	checkAvailableBalance(e, username, amount-amount1)
 
 	obj = setBuyTrigger(e, username, testSymbol, testPrice, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "triggerprice", "executable", "time")
@@ -625,7 +621,7 @@ func TestSetBuyTrigger(t *testing.T) {
 	obj.ValueEqual("triggerprice", testPrice)
 	obj.ValueEqual("executable", true)
 
-	checkAvailableBalance(e, username, amount - amount1)
+	checkAvailableBalance(e, username, amount-amount1)
 
 	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "triggerprice", "executable", "time")
@@ -642,7 +638,6 @@ func TestSetBuyTrigger(t *testing.T) {
 	checkAvailableBalance(e, username, amount)
 }
 
-
 func TestSetSellTrigger(t *testing.T) {
 	e := initTest(t)
 	sharesForMoney := 10
@@ -656,9 +651,8 @@ func TestSetSellTrigger(t *testing.T) {
 	add(e, username, amount, http.StatusOK)
 	buy(e, username, testSymbol, amount, http.StatusOK)
 	commitBuy(e, username, http.StatusOK)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+	checkAvailableBalance(e, username, amount-(testPrice*sharesForMoney))
 	checkAvailableShares(e, username, testSymbol, sharesForMoney)
-
 
 	obj := setSellAmount(e, username, testSymbol, amount1, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "triggerprice", "executable", "time")
@@ -668,8 +662,8 @@ func TestSetSellTrigger(t *testing.T) {
 	obj.ValueEqual("type", "SELL")
 	obj.ValueEqual("executable", false)
 
-	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+	checkAvailableShares(e, username, testSymbol, sharesForMoney-numShares1)
+	checkAvailableBalance(e, username, amount-(testPrice*sharesForMoney))
 
 	//duplicate
 	setSellAmount(e, username, testSymbol, amount2, http.StatusInternalServerError)
@@ -683,7 +677,7 @@ func TestSetSellTrigger(t *testing.T) {
 	obj.ValueEqual("executable", false)
 
 	checkAvailableShares(e, username, testSymbol, sharesForMoney)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+	checkAvailableBalance(e, username, amount-(testPrice*sharesForMoney))
 
 	obj = cancelSellTrigger(e, username, testSymbol, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
@@ -699,7 +693,7 @@ func TestSetSellTrigger(t *testing.T) {
 	obj.ValueEqual("type", "SELL")
 	obj.ValueEqual("executable", false)
 
-	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
+	checkAvailableShares(e, username, testSymbol, sharesForMoney-numShares1)
 
 	obj = setSellTrigger(e, username, testSymbol, testPrice, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "triggerprice", "executable", "time")
@@ -710,7 +704,7 @@ func TestSetSellTrigger(t *testing.T) {
 	obj.ValueEqual("triggerprice", testPrice)
 	obj.ValueEqual("executable", true)
 
-	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
+	checkAvailableShares(e, username, testSymbol, sharesForMoney-numShares1)
 
 	obj = cancelSellTrigger(e, username, testSymbol, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "triggerprice", "executable", "time")
@@ -725,9 +719,8 @@ func TestSetSellTrigger(t *testing.T) {
 	obj.Keys().ContainsOnly("error", "message")
 
 	checkAvailableShares(e, username, testSymbol, sharesForMoney)
-	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+	checkAvailableBalance(e, username, amount-(testPrice*sharesForMoney))
 }
-
 
 func TestExecuteBuyTrigger(t *testing.T) {
 	e := initTest(t)
