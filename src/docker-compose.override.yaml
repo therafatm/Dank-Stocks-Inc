@@ -1,9 +1,8 @@
-version: '3'
+version: '2'
 
 services:
   quote_server_mock:
     entrypoint: fresh app.go
-
 
   transaction:
     entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- fresh app.go
