@@ -162,6 +162,37 @@ func cancelBuyTrigger(e *httpexpect.Expect, username string, symbol string, stat
 	return
 }
 
+func setSellAmount(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "SET_SELL_AMOUNT", Username: username, Symbol: testSymbol, Amount: amount }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
+func cancelSellTrigger(e *httpexpect.Expect, username string, symbol string, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "CANCEL_SET_SELL", Username: username, Symbol: testSymbol }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
+func setSellTrigger(e *httpexpect.Expect, username string, symbol string, amount int, status int) (obj *httpexpect.Object) {
+	cmd := commands.Command{ Name: "SET_SELL_TRIGGER", Username: username, Symbol: testSymbol, Amount: amount }
+	endpoint := commands.FormatCommandEndpoint(cmd)
+	obj = e.GET(endpoint).
+		Expect().
+		Status(status).
+		JSON().Object()
+	return
+}
+
+
 func TestAddUser(t *testing.T) {
 	e := initTest(t)
 
@@ -215,8 +246,7 @@ func TestBuy(t *testing.T) {
 	obj.ValueEqual("shares", actualShares)
 	obj.ValueEqual("amount", actualShares * testPrice)
 
-	checkAvailableBalance(e, username, (sharesToBuy - actualShares) * testPrice)
-
+	checkAvailableBalance(e, username, amount)
 	// commit buy order
 	obj = commitBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
@@ -227,8 +257,47 @@ func TestBuy(t *testing.T) {
 	checkAvailableBalance(e, username, amount  - (testPrice * actualShares))
 	checkAvailableShares(e, username, testSymbol, actualShares)
 
-	// not enough money
+	// not enough money buy
 	obj = buy(e, username, testSymbol, testPrice * sharesToBuy, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+}
+
+func TestBuyCommitNotEnoughMoney(t *testing.T){
+	e := initTest(t)
+
+	// initial buy
+	sharesToBuy := 10
+	amount := testPrice * sharesToBuy 
+	obj := add(e, username, amount, http.StatusOK)
+
+	obj = buy(e, username, testSymbol, amount, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("shares", sharesToBuy)
+	obj.ValueEqual("amount", amount)
+
+
+	obj = buy(e, username, testSymbol, amount, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "shares", "amount", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("type", "BUY")
+	obj.ValueEqual("shares", sharesToBuy)
+	obj.ValueEqual("amount", amount)
+
+	// commit bad buy order
+	obj = commitBuy(e, username, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("shares", sharesToBuy)
+
+	checkAvailableBalance(e, username, 0)
+	checkAvailableShares(e, username, testSymbol, sharesToBuy)
+
+	obj = commitBuy(e, username, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
 }
 
@@ -250,7 +319,7 @@ func TestMultiBuy(t *testing.T) {
 	buy(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
 
 	checkAvailableShares(e, username, testSymbol, 0)
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount)
 
 	obj := commitBuy(e, username, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "shares")
@@ -258,7 +327,7 @@ func TestMultiBuy(t *testing.T) {
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares3)
 
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount - ((numShares3) * testPrice))
 	checkAvailableShares(e, username, testSymbol, numShares3)
 
 	obj = commitBuy(e, username, http.StatusOK)
@@ -267,7 +336,7 @@ func TestMultiBuy(t *testing.T) {
 	obj.ValueEqual("symbol", testSymbol)
 	obj.ValueEqual("shares", numShares3 + numShares2)
 
-	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2) * testPrice))
 	checkAvailableShares(e, username, testSymbol, numShares3 + numShares2)
 
 	obj = commitBuy(e, username, http.StatusOK)
@@ -305,7 +374,7 @@ func TestCancelBuy(t *testing.T) {
 	obj.ValueEqual("amount", numShares3 * testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount - ((numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -316,7 +385,7 @@ func TestCancelBuy(t *testing.T) {
 	obj.ValueEqual("amount", numShares2 * testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount - (numShares1 * testPrice))
+	checkAvailableBalance(e, username, amount)
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -353,7 +422,7 @@ func TestSell(t *testing.T) {
 	obj.ValueEqual("amount", sharesToSell * testPrice)
 	obj.ValueEqual("type", "SELL")
 
-	checkAvailableShares(e, username, testSymbol, sharesToBuy - sharesToSell)
+	checkAvailableShares(e, username, testSymbol, sharesToBuy)
 	checkAvailableBalance(e, username, amount  - (testPrice * sharesToBuy))
 
 	// commit sell order
@@ -414,7 +483,7 @@ func TestMultiSell(t *testing.T) {
 	sell(e, username, testSymbol, numShares2 * testPrice, http.StatusOK)
 	sell(e, username, testSymbol, numShares3 * testPrice, http.StatusOK)
 
-	checkAvailableShares(e, username, testSymbol, 0)
+	checkAvailableShares(e, username, testSymbol, (numShares3 + numShares2 + numShares1))
 	checkAvailableBalance(e, username, amount - ((numShares3 + numShares2 + numShares1) * testPrice))
 
 	obj := commitSell(e, username, http.StatusOK)
@@ -463,7 +532,7 @@ func TestCancelSell(t *testing.T) {
 	obj.ValueEqual("amount", numShares3 * testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount - ((numShares2 + numShares1) * testPrice))
+	checkAvailableBalance(e, username, amount )
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -474,7 +543,7 @@ func TestCancelSell(t *testing.T) {
 	obj.ValueEqual("amount", numShares2 * testPrice)
 	obj.ValueEqual("type", "BUY")
 
-	checkAvailableBalance(e, username, amount - (numShares1 * testPrice))
+	checkAvailableBalance(e, username, amount )
 	checkAvailableShares(e, username, testSymbol, 0)
 
 	obj = cancelBuy(e, username, http.StatusOK)
@@ -489,30 +558,37 @@ func TestCancelSell(t *testing.T) {
 	checkAvailableShares(e, username, testSymbol, 0)
 }	
 
-//TODO: add some balance checking
-func TestSetTrigger(t *testing.T) {
+func TestSetBuyTrigger(t *testing.T) {
 	e := initTest(t)
 	sharesForMoney := 10
 
 	amount := testPrice * sharesForMoney
+	amount1 := amount / 5
+	amount2 := amount - amount1
+
 	add(e, username, amount, http.StatusOK)
-	obj := setBuyAmount(e, username, testSymbol, amount, http.StatusOK)
+	obj := setBuyAmount(e, username, testSymbol, amount1, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("amount", amount1)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("executable", false)
 
-	obj = setBuyAmount(e, username, testSymbol, amount, http.StatusInternalServerError)
+	checkAvailableBalance(e, username, amount - amount1)
+
+	//duplicate buy amount
+	setBuyAmount(e, username, testSymbol, amount2, http.StatusInternalServerError)
 
 	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("amount", amount1)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("executable", false)
+
+	checkAvailableBalance(e, username, amount)
 
 	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
@@ -520,34 +596,124 @@ func TestSetTrigger(t *testing.T) {
 	obj = setBuyTrigger(e, username, testSymbol, testPrice, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
 
-
-	obj = setBuyAmount(e, username, testSymbol, amount, http.StatusOK)
+	obj = setBuyAmount(e, username, testSymbol, amount1, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("amount", amount1)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("executable", false)
+
+	checkAvailableBalance(e, username, amount - amount1)
 
 	obj = setBuyTrigger(e, username, testSymbol, testPrice, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("amount", amount1)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("triggerprice", testPrice)
 	obj.ValueEqual("executable", true)
+
+	checkAvailableBalance(e, username, amount - amount1)
 
 	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusOK)
 	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
 	obj.ValueEqual("username", username)
 	obj.ValueEqual("symbol", testSymbol)
-	obj.ValueEqual("amount", amount)
+	obj.ValueEqual("amount", amount1)
 	obj.ValueEqual("type", "BUY")
 	obj.ValueEqual("triggerprice", testPrice)
 	obj.ValueEqual("executable", true)
 
-
 	obj = cancelBuyTrigger(e, username, testSymbol, http.StatusInternalServerError)
 	obj.Keys().ContainsOnly("error", "message")
+
+	checkAvailableBalance(e, username, amount)
+}
+
+
+func TestSetSellTrigger(t *testing.T) {
+	e := initTest(t)
+	sharesForMoney := 10
+	numShares1 := sharesForMoney / 5
+	numShares2 := sharesForMoney - numShares1
+
+	amount := testPrice * sharesForMoney
+	amount1 := numShares1 * testPrice
+	amount2 := numShares2 * testPrice
+
+	add(e, username, amount, http.StatusOK)
+	buy(e, username, testSymbol, amount, http.StatusOK)
+	commitBuy(e, username, http.StatusOK)
+	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+	checkAvailableShares(e, username, testSymbol, sharesForMoney)
+
+
+	obj := setSellAmount(e, username, testSymbol, amount1, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", numShares1)
+	obj.ValueEqual("type", "SELL")
+	obj.ValueEqual("executable", false)
+
+	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
+	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+
+	//duplicate
+	setSellAmount(e, username, testSymbol, amount2, http.StatusInternalServerError)
+
+	obj = cancelSellTrigger(e, username, testSymbol, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", numShares1)
+	obj.ValueEqual("type", "SELL")
+	obj.ValueEqual("executable", false)
+
+	checkAvailableShares(e, username, testSymbol, sharesForMoney)
+	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
+
+	obj = cancelSellTrigger(e, username, testSymbol, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+
+	obj = setSellTrigger(e, username, testSymbol, testPrice, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+
+	obj = setSellAmount(e, username, testSymbol, amount1, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", numShares1)
+	obj.ValueEqual("type", "SELL")
+	obj.ValueEqual("executable", false)
+
+	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
+
+	obj = setSellTrigger(e, username, testSymbol, testPrice, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", numShares1)
+	obj.ValueEqual("type", "SELL")
+	obj.ValueEqual("triggerprice", testPrice)
+	obj.ValueEqual("executable", true)
+
+	checkAvailableShares(e, username, testSymbol, sharesForMoney - numShares1)
+
+	obj = cancelSellTrigger(e, username, testSymbol, http.StatusOK)
+	obj.Keys().ContainsOnly("id", "username", "symbol", "type", "amount", "shares", "triggerprice", "executable", "time")
+	obj.ValueEqual("username", username)
+	obj.ValueEqual("symbol", testSymbol)
+	obj.ValueEqual("amount", numShares1)
+	obj.ValueEqual("type", "SELL")
+	obj.ValueEqual("triggerprice", testPrice)
+	obj.ValueEqual("executable", true)
+
+	obj = cancelSellTrigger(e, username, testSymbol, http.StatusInternalServerError)
+	obj.Keys().ContainsOnly("error", "message")
+
+	checkAvailableShares(e, username, testSymbol, sharesForMoney)
+	checkAvailableBalance(e, username, amount  - (testPrice * sharesForMoney))
 }
