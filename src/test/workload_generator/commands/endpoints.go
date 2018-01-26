@@ -58,6 +58,9 @@ func FormatCommandEndpoint(cmd Command) string {
         case "SET_SELL_AMOUNT":
             return fmt.Sprintf("/api/setSellAmount/%s/%s/%d", cmd.Username, cmd.Symbol, cmd.Amount)
 
+        case "EXECUTE_TRIGGERS":
+            return fmt.Sprintf("/api/executeTriggers/%s", cmd.Username)
+
         case "DUMPLOG":
             return ""
 

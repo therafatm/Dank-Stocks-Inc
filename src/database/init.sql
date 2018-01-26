@@ -34,7 +34,6 @@ CREATE TABLE Triggers (
     symbol VARCHAR(10) NOT NULL,
     type VARCHAR(10) NOT NULL,
     amount INTEGER NOT NULL,
-    shares INTEGER NOT NULL,
     trigger_price INTEGER NOT NULL,
     executable BOOLEAN NOT NULL,
     time BIGINT NOT NULL,
