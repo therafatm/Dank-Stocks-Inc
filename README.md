@@ -10,5 +10,5 @@ seng 468 Spring 2018
 
 ## Running Tests
 * `cd ./src`
-*  `docker-compose -f docker-compose.yaml -f docker-compose.test.yaml  build`
-*  `docker-compose -f docker-compose.yaml -f docker-compose.test.yaml  up`
+*  docker-compose exec test go test .
+*  docker-compose exec test go run workload_generator/generator.go
