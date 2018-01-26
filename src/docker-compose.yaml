@@ -3,7 +3,7 @@ version: '3'
 services:
 
   db:
-    image: postgres:9.5
+    build: ./postgres
 
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
