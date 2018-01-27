@@ -17,12 +17,14 @@ import (
 func postData(client *http.Client, url string){
     req, err := http.NewRequest("GET", url, nil)
     if err != nil {
-        log.Fatal(err)
+    	log.Println(err.Error())
+	return
     }
     req.Header.Set("Connection", "keep-alive")
     resp, err := client.Do(req)
     if err != nil {
-        log.Fatal(err)
+    	log.Println(err.Error())
+	return
     }
     defer resp.Body.Close()
 
@@ -30,7 +32,8 @@ func postData(client *http.Client, url string){
     fmt.Printf("Sent request %s\n", url)
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {
-        log.Fatal(err)
+        log.Println(err.Error())
+	return
     }
     fmt.Printf("Body: %s\n", body)
 
