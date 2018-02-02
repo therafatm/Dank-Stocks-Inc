@@ -231,7 +231,7 @@ func TestAddUser(t *testing.T) {
 
 	//bad amount
 	fAmount := 200.23
-	endpoint := fmt.Sprintf("/api/add/%s/%f/0", username, fAmount)
+	endpoint := fmt.Sprintf("/api/add/%s/%f/1", username, fAmount)
 	obj = e.GET(endpoint).
 		Expect().
 		Status(http.StatusInternalServerError).

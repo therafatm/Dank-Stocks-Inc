@@ -1,4 +1,4 @@
-FROM postgres:9.5
+FROM postgres:alpine
     
 EXPOSE 5432
 ADD init.sql /docker-entrypoint-initdb.d/

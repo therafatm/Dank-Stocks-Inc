@@ -30,7 +30,16 @@ services:
 
     ports:
       - "5432:5432"
-
+  
+  rabbit:
+    build: ./rabbit
+    
+    ports:
+      - "15672:15672"
+    
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=rabbit
 
   quote_server_mock:
     volumes:
