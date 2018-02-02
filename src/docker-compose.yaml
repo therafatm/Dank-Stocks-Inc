@@ -15,12 +15,8 @@ services:
     depends_on:
       - transaction
 
-    environment:
-      - TRANS_HOST=transaction
-      - TRANS_PORT=8888
-      - QUOTE_SERVER_HOST=quoteserver
-      - QUOTE_SERVER_PORT=8000
-
+    env_file:
+      - vars.env
 
   db:
     build: ./postgres
@@ -36,11 +32,10 @@ services:
     
     ports:
       - "15672:15672"
-    
-    environment:
-      - RABBITMQ_DEFAULT_USER=rabbit
-      - RABBITMQ_DEFAULT_PASS=rabbit
 
+    env_file:
+      - vars.env
+    
   quote_server_mock:
     volumes:
       - ./quote_server_mock:/go/src/quote_server_mock
@@ -54,9 +49,8 @@ services:
     ports:
       - "8000:8000"
 
-    environment:
-      - QUOTE_SERVER_PORT=8000
-
+    env_file:
+      - vars.env
 
   transaction:
 
@@ -72,21 +66,15 @@ services:
 
     depends_on:
       - db
+      - rabbit
 
     links:
         - db:database
         - quote_server_mock:quoteserver
 
-    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- fresh app.go
+    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
 
     command: go run app.go
 
-
-    environment:
-      - POSTGRES_HOST=database
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=transactions
-      - DB_PORT=5432
-      - QUOTE_SERVER_HOST=quoteserver
-      - QUOTE_SERVER_PORT=8000
+    env_file:
+      - vars.env
