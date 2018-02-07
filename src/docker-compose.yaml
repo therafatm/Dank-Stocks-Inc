@@ -75,6 +75,33 @@ services:
     env_file:
       - vars.env
 
+  logger:
+
+    volumes:
+      - ./logger_service:/go/src/logger_service
+      - ./common:/go/src/common
+
+    working_dir: /go/src/logger_service
+
+    build:
+      context: .
+      dockerfile: logger_service/Dockerfile
+    
+    depends_on:
+      - log_db
+      - rabbit
+
+    links:
+        - rabbit:rabbit
+        - log_db:logdb
+  
+    entrypoint: waitforit -address=tcp://logdb:5432 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh log.go
+
+    command: go run app.go
+
+    env_file:
+      - vars.env
+
   transaction:
 
     volumes:
@@ -99,6 +126,7 @@ services:
         - transaction_db:transdb
         - quote_server_mock:quoteserver
         - redis:redis
+        - rabbit:rabbit
   
     entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
 
