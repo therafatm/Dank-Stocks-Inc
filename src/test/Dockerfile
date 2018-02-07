@@ -1,6 +1,7 @@
 FROM golang:latest
 
-COPY . /go/src/test
+COPY common /go/src/common
+COPY test /go/src/test
 WORKDIR /go/src/test
 
 RUN go get github.com/gavv/httpexpect

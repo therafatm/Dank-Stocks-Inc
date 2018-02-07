@@ -4,9 +4,13 @@ services:
   test:
     volumes:
       - ./test:/go/src/test
+      - ./common:/go/src/common
 
     working_dir: /go/src/test
-    build: ./test
+
+    build:
+      context: .
+      dockerfile: test/Dockerfile
 
     links:
         - transaction:transaction
@@ -18,11 +22,20 @@ services:
     env_file:
       - vars.env
 
-  db:
-    build: ./postgres
+  log_db:
+    build: ./log_db
 
     volumes:
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - "5433:5432"
+
+  transaction_db:
+    build: ./transaction_db
+
+    volumes:
+      - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     ports:
       - "5432:5432"
@@ -48,6 +61,7 @@ services:
   quote_server_mock:
     volumes:
       - ./quote_server_mock:/go/src/quote_server_mock
+      - ./common:/go/src/common
 
     working_dir: /go/src/quote_server_mock
 
@@ -65,25 +79,28 @@ services:
 
     volumes:
       - ./transaction_service:/go/src/transaction_service
+      - ./common:/go/src/common
 
     working_dir: /go/src/transaction_service
 
-    build: ./transaction_service
-
+    build:
+      context: .
+      dockerfile: transaction_service/Dockerfile
+    
     ports:
       - "8888:8888"
 
     depends_on:
-      - db
+      - transaction_db
       - rabbit
       - redis
 
     links:
-        - db:database
+        - transaction_db:transdb
         - quote_server_mock:quoteserver
         - redis:redis
   
-    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
+    entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
 
     command: go run app.go
 
