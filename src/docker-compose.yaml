@@ -13,11 +13,11 @@ services:
       dockerfile: test/Dockerfile
 
     links:
-        - transaction:transaction
-        - quote_server_mock:quoteserver
+      - transaction_service:transaction
+      - quote_server_mock:quoteserver
 
     depends_on:
-      - transaction
+      - transaction_service
 
     env_file:
       - vars.env
@@ -102,7 +102,7 @@ services:
     env_file:
       - vars.env
 
-  transaction:
+  transaction_service:
 
     volumes:
       - ./transaction_service:/go/src/transaction_service
@@ -130,6 +130,40 @@ services:
   
     entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
 
+    command: go run app.go
+
+    env_file:
+      - vars.env
+
+  trigger_manager:
+ 
+    volumes:
+      - ./transaction_service:/go/src/transaction_service
+      - ./trigger_manager:/go/src/trigger_manager
+      - ./common:/go/src/common 
+
+    build:
+      context: .
+      dockerfile: trigger_manager/Dockerfile
+    
+    ports:
+      - "8887:8887"
+
+    working_dir: /go/src/trigger_manager
+
+    depends_on:
+      - transaction_db
+      - rabbit
+      - redis
+
+    links:
+      - transaction_db:transdb
+      - quote_server_mock:quoteserver
+      - redis:redis
+      - rabbit:rabbit 
+
+    entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
+  
     command: go run app.go
 
     env_file:
