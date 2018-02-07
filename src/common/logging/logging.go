@@ -1,16 +1,16 @@
 package logging
 
 import (
-	"encoding/xml"
+	"bytes"
+	"encoding/gob"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"common/utils"
-	"github.com/lestrrat/go-libxml2"
-	"github.com/lestrrat/go-libxml2/xsd"
 	"github.com/streadway/amqp"
 )
 
@@ -53,11 +53,19 @@ var validCommands = map[Command]bool{
 	DUMPLOG:          true,
 	DISPLAY_SUMMARY:  true}
 
+type Message struct {
+	UserCommand        *UserCommandType        `xml:"userCommand"`
+	AccountTransaction *AccountTransactionType `xml:"accountTransaction"`
+	SystemEvent        *SystemEventType        `xml:"systemEvent"`
+	QuoteServer        *QuoteServerType        `xml:"quoteServer"`
+	ErrorEvent         *ErrorEventType         `xml:"errorEvent"`
+}
+
 type UserCommandType struct {
 	XMLName           string  `xml:"userCommand"`
-	Timestamp         string  `xml:"timestamp"`
+	Timestamp         int64   `xml:"timestamp"`
 	Server            string  `xml:"server"`
-	TransactionNumber string  `xml:"transactionNum"`
+	TransactionNumber int64   `xml:"transactionNum"`
 	Command           Command `xml:"command"`
 	Username          string  `xml:"username,omitempty"`
 	Symbol            string  `xml:"stockSymbol,omitempty"`
@@ -67,9 +75,9 @@ type UserCommandType struct {
 
 type AccountTransactionType struct {
 	XMLName           string `xml:"accountTransaction"`
-	Timestamp         string `xml:"timestamp"`
+	Timestamp         int64  `xml:"timestamp"`
 	Server            string `xml:"server"`
-	TransactionNumber string `xml:"transactionNum"`
+	TransactionNumber int64  `xml:"transactionNum"`
 	Action            string `xml:"action"`
 	Username          string `xml:"username"`
 	Funds             string `xml:"funds"`
@@ -77,9 +85,9 @@ type AccountTransactionType struct {
 
 type SystemEventType struct {
 	XMLName           string `xml:"systemEvent"`
-	Timestamp         string `xml:"timestamp"`
+	Timestamp         int64  `xml:"timestamp"`
 	Server            string `xml:"server"`
-	TransactionNumber string `xml:"transactionNum"`
+	TransactionNumber int64  `xml:"transactionNum"`
 	Command           string `xml:"command"`
 	Username          string `xml:"username"`
 	Symbol            string `xml:"stockSymbol"`
@@ -88,10 +96,10 @@ type SystemEventType struct {
 
 type QuoteServerType struct {
 	XMLName           string `xml:"quoteServer"`
-	Timestamp         string `xml:"timestamp"`
+	Timestamp         int64  `xml:"timestamp"`
 	Server            string `xml:"server"`
-	TransactionNumber string `xml:"transactionNum"`
-	QuoteServerTime   string `xml:"quoteServerTime"`
+	TransactionNumber int64  `xml:"transactionNum"`
+	QuoteServerTime   int64  `xml:"quoteServerTime"`
 	Username          string `xml:"username"`
 	Symbol            string `xml:"stockSymbol"`
 	Price             string `xml:"price"`
@@ -100,9 +108,9 @@ type QuoteServerType struct {
 
 type ErrorEventType struct {
 	XMLName           string  `xml:"errorEvent"`
-	Timestamp         string  `xml:"timestamp"`
+	Timestamp         int64   `xml:"timestamp"`
 	Server            string  `xml:"server"`
-	TransactionNumber string  `xml:"transactionNum"`
+	TransactionNumber int64   `xml:"transactionNum"`
 	Command           Command `xml:"command"`
 	Username          string  `xml:"username,omitempty"`
 	Symbol            string  `xml:"stockSymbol,omitempty"`
@@ -112,8 +120,6 @@ type ErrorEventType struct {
 
 const server = "transaction"
 const schemaFile = "logging/schema.xsd"
-const prefix = ""
-const indent = "\t"
 
 type Logger interface {
 	LogCommand(command Command, vars map[string]string)
@@ -159,7 +165,6 @@ func NewLoggerConnection() (logconn *LogConnection) {
 		nil,   // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
-
 	return
 }
 
@@ -172,18 +177,52 @@ func NewLoggerConnection() (logconn *LogConnection) {
 // 	}
 // }
 
-func (logconn *LogConnection) publishXMLEntry(entry []byte) {
-	err := logconn.Channel.Publish(
+func DecodeMessage(reader io.Reader) (message *Message) {
+	dec := gob.NewDecoder(reader)
+	err := dec.Decode(&message)
+	if err != nil {
+		utils.LogErr(err, "Failed to decode message.")
+	}
+	return
+}
+
+func (logconn *LogConnection) publishMessage(message Message) {
+	var buffer bytes.Buffer
+	enc := gob.NewEncoder(&buffer)
+	err := enc.Encode(message)
+	if err != nil {
+		utils.LogErr(err, "Failed to encode message.")
+	}
+
+	err = logconn.Channel.Publish(
 		"",                 // exchange
 		logconn.Queue.Name, // routing key
 		false,              // mandatory
 		false,              // immediate
 		amqp.Publishing{
-			ContentType: "text/xml",
-			Body:        entry,
+			ContentType: "text/plain",
+			Body:        buffer.Bytes(),
 		})
 	if err != nil {
 		utils.LogErr(err, "Failed to publish log message.")
+	}
+}
+
+func PrintMessage(message Message) {
+	if message.UserCommand != nil {
+		log.Printf("%+v\n", message.UserCommand)
+	}
+	if message.AccountTransaction != nil {
+		log.Printf("%+v\n", message.AccountTransaction)
+	}
+	if message.SystemEvent != nil {
+		log.Printf("%+v\n", message.SystemEvent)
+	}
+	if message.QuoteServer != nil {
+		log.Printf("%+v\n", message.QuoteServer)
+	}
+	if message.ErrorEvent != nil {
+		log.Printf("%+v\n", message.ErrorEvent)
 	}
 }
 
@@ -200,125 +239,85 @@ func formatAmount(amount int) string {
 	return fmt.Sprintf("%d.%d", amount/100, amount%100)
 }
 
-func getUnixTimestamp() string {
-	return fmt.Sprintf("%d", time.Now().UnixNano()/int64(time.Millisecond))
+func getUnixTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func validateSchema(ele []byte) {
-	schema, err := os.Open(schemaFile)
+func parseTransactionNumber(transactionNumber string) (tnum int64) {
+	tnum, err := strconv.ParseInt(transactionNumber, 10, 64)
 	if err != nil {
-		utils.LogErr(err, "failed to open file")
-		return
+		utils.LogErr(err, "Failed to parse transaction number")
 	}
-	defer schema.Close()
-
-	schemabuf, err := ioutil.ReadAll(schema)
-	if err != nil {
-		utils.LogErr(err, "failed to read file")
-		return
-	}
-
-	s, err := xsd.Parse(schemabuf)
-	if err != nil {
-		utils.LogErr(err, "failed to parse XSD")
-		return
-	}
-	defer s.Free()
-
-	wrapper := []byte(fmt.Sprintf("<log>%s</log>", ele))
-
-	d, err := libxml2.Parse(wrapper)
-	if err != nil {
-		utils.LogErr(err, "failed to parse XML")
-		return
-	}
-
-	if err := s.Validate(d); err != nil {
-		for _, err := range err.(xsd.SchemaValidationError).Errors() {
-			if err != nil {
-				utils.LogErr(err, "failed to validate XML.")
-				return
-			}
-		}
-	}
-	if err != nil {
-		utils.LogErr(err, "failed to validate XML.")
-	}
+	return
 }
 
 func (logconn *LogConnection) LogCommand(command Command, vars map[string]string) {
 	if _, exist := validCommands[command]; exist {
 		timestamp := getUnixTimestamp()
-		v := UserCommandType{Timestamp: timestamp, Server: server, Command: command}
+		userCommand := UserCommandType{Timestamp: timestamp, Server: server, Command: command}
 
 		if val, exist := vars["trans"]; exist {
-			v.TransactionNumber = val
+			userCommand.TransactionNumber = parseTransactionNumber(val)
 		}
 		if val, exist := vars["username"]; exist {
-			v.Username = val
+			userCommand.Username = val
 		}
 		if val, exist := vars["symbol"]; exist {
-			v.Symbol = val
+			userCommand.Symbol = val
 		}
 		if val, exist := vars["filename"]; exist {
-			v.Filename = val
+			userCommand.Filename = val
 		}
 		if val, exist := vars["amount"]; exist {
 			var err error
-			v.Funds, err = formatStrAmount(val)
+			userCommand.Funds, err = formatStrAmount(val)
 			if err != nil {
 				utils.LogErr(err, "Failed to format amount")
 				return
 			}
 		}
 
-		output, err := xml.MarshalIndent(v, prefix, indent)
-		if err != nil {
-			utils.LogErr(err, "failed to marshal log command.")
-			return
-		}
-		logconn.publishXMLEntry(output)
+		msg := Message{UserCommand: &userCommand}
+		logconn.publishMessage(msg)
 	}
 }
 
 func (logconn *LogConnection) LogQuoteServ(username string, price string, stocksymbol string, quoteTimestamp string, cryptokey string, trans string) {
 	timestamp := getUnixTimestamp()
+	quoteTimeInt, err := strconv.ParseInt(quoteTimestamp, 10, 64)
+	if err != nil {
+		utils.LogErr(err, "Failed to parse quote server timestamp")
+	}
+	tnum := parseTransactionNumber(trans)
 
-	v := QuoteServerType{Timestamp: timestamp,
+	quoteServer := QuoteServerType{Timestamp: timestamp,
 		Server:            server,
-		QuoteServerTime:   quoteTimestamp,
+		QuoteServerTime:   quoteTimeInt,
 		Username:          username,
 		Symbol:            stocksymbol,
 		Price:             price,
 		CryptoKey:         cryptokey,
-		TransactionNumber: trans}
+		TransactionNumber: tnum}
 
-	output, err := xml.MarshalIndent(v, prefix, indent)
-	if err != nil {
-		utils.LogErr(err, "failed to marshal quote server request.")
-		return
-	}
-
-	logconn.publishXMLEntry(output)
+	msg := Message{QuoteServer: &quoteServer}
+	logconn.publishMessage(msg)
 }
 
 func (logconn *LogConnection) LogTransaction(action string, username string, amount int, trans string) {
 	timestamp := getUnixTimestamp()
-	v := AccountTransactionType{
+	tnum := parseTransactionNumber(trans)
+
+	accountTransaction := AccountTransactionType{
 		Timestamp:         timestamp,
 		Server:            server,
-		TransactionNumber: trans,
+		TransactionNumber: tnum,
 		Username:          username,
 		Action:            action,
 		Funds:             formatAmount(amount),
 	}
 
-	output, err := xml.MarshalIndent(v, prefix, indent)
-	if err != nil {
-		utils.LogErr(err, "failed to marshal transaction.")
-		return
-	}
-	logconn.publishXMLEntry(output)
+	msg := Message{AccountTransaction: &accountTransaction}
+	logconn.publishMessage(msg)
 }
 
 // func LogSystemEvent(command string, username string, stocksymbol string, funds string) {
@@ -344,35 +343,31 @@ func (logconn *LogConnection) LogTransaction(action string, username string, amo
 
 func (logconn *LogConnection) LogErrorEvent(command Command, vars map[string]string, emessage string) {
 	timestamp := getUnixTimestamp()
-	v := ErrorEventType{
+
+	errorEvent := ErrorEventType{
 		Timestamp:    timestamp,
 		Server:       server,
 		Command:      command,
 		ErrorMessage: emessage}
 
 	if val, exist := vars["trans"]; exist {
-		v.TransactionNumber = val
+		errorEvent.TransactionNumber = parseTransactionNumber(val)
 	}
 	if val, exist := vars["username"]; exist {
-		v.Username = val
+		errorEvent.Username = val
 	}
 	if val, exist := vars["symbol"]; exist {
-		v.Symbol = val
+		errorEvent.Symbol = val
 	}
 	if val, exist := vars["amount"]; exist {
 		var err error
-		v.Funds, err = formatStrAmount(val)
+		errorEvent.Funds, err = formatStrAmount(val)
 		if err != nil {
 			utils.LogErr(err, "Failed to format amount")
 			return
 		}
 	}
 
-	output, err := xml.MarshalIndent(v, prefix, indent)
-	if err != nil {
-		utils.LogErr(err, "failed to marshal error event.")
-		return
-	}
-
-	logconn.publishXMLEntry(output)
+	msg := Message{ErrorEvent: &errorEvent}
+	logconn.publishMessage(msg)
 }
