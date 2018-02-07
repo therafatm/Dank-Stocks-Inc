@@ -3,4 +3,3 @@ CREATE DATABASE logs OWNER seng468;
 GRANT ALL PRIVILEGES ON DATABASE logs TO seng468;
 
 \c logs; 
-
