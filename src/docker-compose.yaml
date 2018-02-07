@@ -26,7 +26,16 @@ services:
 
     ports:
       - "5432:5432"
-  
+
+  redis:
+    build: ./redis
+
+    ports:
+      - "6379:6379"
+
+    env_file:
+      - vars.env
+
   rabbit:
     build: ./rabbit
     
@@ -67,12 +76,14 @@ services:
     depends_on:
       - db
       - rabbit
+      - redis
 
     links:
         - db:database
         - quote_server_mock:quoteserver
-
-    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
+        - redis:redis
+  
+    entrypoint: waitforit -address=tcp://database:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
 
     command: go run app.go
 
