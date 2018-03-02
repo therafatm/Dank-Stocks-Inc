@@ -5,56 +5,43 @@ services:
     volumes:
       - ./test:/go/src/test
       - ./common:/go/src/common
-
     working_dir: /go/src/test
-
     build:
       context: .
       dockerfile: test/Dockerfile
-
     links:
       - transaction_service:transaction
       - quote_server_mock:quoteserver
-
     depends_on:
       - transaction_service
-
     env_file:
       - vars.env
 
   log_db:
     build: ./log_db
-
     volumes:
       - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
     ports:
       - "5433:5432"
 
   transaction_db:
     build: ./transaction_db
-
     volumes:
       - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
     ports:
       - "5432:5432"
 
   redis:
     build: ./redis
-
     ports:
       - "6379:6379"
-
     env_file:
       - vars.env
 
   rabbit:
     build: ./rabbit
-    
     ports:
       - "15672:15672"
-
     env_file:
       - vars.env
     
@@ -62,109 +49,78 @@ services:
     volumes:
       - ./quote_server_mock:/go/src/quote_server_mock
       - ./common:/go/src/common
-
     working_dir: /go/src/quote_server_mock
-
     build: ./quote_server_mock
-
     entrypoint: fresh app.go
-
     ports:
       - "8000:8000"
-
     env_file:
       - vars.env
 
   logger:
-
     volumes:
       - ./logger_service:/go/src/logger_service
       - ./common:/go/src/common
-
     working_dir: /go/src/logger_service
-
     build:
       context: .
       dockerfile: logger_service/Dockerfile
-    
     depends_on:
       - log_db
       - rabbit
-
     links:
         - rabbit:rabbit
         - log_db:logdb
-  
     entrypoint: waitforit -address=tcp://logdb:5432 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh log.go
-
     command: go run app.go
-
     env_file:
       - vars.env
 
   transaction_service:
-
     volumes:
       - ./transaction_service:/go/src/transaction_service
       - ./common:/go/src/common
-
     working_dir: /go/src/transaction_service
-
     build:
       context: .
       dockerfile: transaction_service/Dockerfile
-    
     ports:
       - "8888:8888"
-
     depends_on:
       - transaction_db
       - rabbit
       - redis
-
     links:
         - transaction_db:transdb
         - quote_server_mock:quoteserver
         - redis:redis
         - rabbit:rabbit
-  
     entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
-
     command: go run app.go
-
     env_file:
       - vars.env
 
   trigger_manager:
- 
     volumes:
       - ./transaction_service:/go/src/transaction_service
       - ./trigger_manager:/go/src/trigger_manager
       - ./common:/go/src/common 
-
     build:
       context: .
       dockerfile: trigger_manager/Dockerfile
-    
     ports:
       - "8887:8887"
-
     working_dir: /go/src/trigger_manager
-
     depends_on:
       - transaction_db
       - rabbit
       - redis
-
     links:
       - transaction_db:transdb
       - quote_server_mock:quoteserver
       - redis:redis
       - rabbit:rabbit 
-
     entrypoint: waitforit -address=tcp://transdb:5432 -timeout=20 -debug -- waitforit -address=tcp://redis:6379 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh app.go
-  
     command: go run app.go
-
     env_file:
       - vars.env
