@@ -129,7 +129,7 @@ func main() {
 				utils.LogErr(err, "Failed to marshal message")
 			}
 
-			validateSchema(s, output)
+			//validateSchema(s, output)
 
 			_, err = f.Write(output)
 			if err != nil {

@@ -1,4 +1,4 @@
-package logging
+ppackage logging
 
 import (
 	"bytes"
@@ -350,6 +350,7 @@ func (logconn *LogConnection) LogErrorEvent(command Command, vars map[string]str
 		Command:      command,
 		ErrorMessage: emessage}
 
+
 	if val, exist := vars["trans"]; exist {
 		errorEvent.TransactionNumber = parseTransactionNumber(val)
 	}
@@ -369,5 +370,5 @@ func (logconn *LogConnection) LogErrorEvent(command Command, vars map[string]str
 	}
 
 	msg := Message{ErrorEvent: &errorEvent}
-	logconn.publishMessage(msg)
+	//logconn.publishMessage(msg)
 }
