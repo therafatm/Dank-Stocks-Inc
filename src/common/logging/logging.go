@@ -1,4 +1,4 @@
-ppackage logging
+package logging
 
 import (
 	"bytes"
@@ -370,5 +370,6 @@ func (logconn *LogConnection) LogErrorEvent(command Command, vars map[string]str
 	}
 
 	msg := Message{ErrorEvent: &errorEvent}
+	msg.ErrorEvent = nil
 	//logconn.publishMessage(msg)
 }

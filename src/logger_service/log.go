@@ -123,7 +123,6 @@ func main() {
 		for d := range msgs {
 			reader := bytes.NewReader(d.Body)
 			message := logging.DecodeMessage(reader)
-			logging.PrintMessage(*message)
 			output, err := XMLMarshalMessage(*message)
 			if err != nil {
 				utils.LogErr(err, "Failed to marshal message")

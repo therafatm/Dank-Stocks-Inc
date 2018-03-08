@@ -31,7 +31,7 @@ func main() {
 	const pollInterval = 2000
 	for {
 		time.Sleep(time.Millisecond * pollInterval)
-		env.tdb.QueryAndExecuteCurrentTriggers(env.logger, env.quoteCache, "1")
+		env.tdb.QueryAndExecuteCurrentTriggers(env.quoteCache, "1")
 	}
 
 }
