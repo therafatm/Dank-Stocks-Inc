@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"common/models"
 	"common/utils"
 
 	"github.com/streadway/amqp"
@@ -124,7 +125,7 @@ const schemaFile = "logging/schema.xsd"
 
 type Logger interface {
 	LogCommand(command Command, vars map[string]string)
-	LogQuoteServ(username string, price string, stocksymbol string, quoteTimestamp string, cryptokey string, trans string)
+	LogQuoteServ(stockQuote *models.StockQuote, trans string)
 	LogTransaction(action string, username string, amount int, trans string)
 	LogErrorEvent(command Command, vars map[string]string, emessage string)
 }
@@ -274,9 +275,9 @@ func (logconn *LogConnection) LogCommand(command Command, vars map[string]string
 	}
 }
 
-func (logconn *LogConnection) LogQuoteServ(stockQuote *models.stockQuote, trans string) {
+func (logconn *LogConnection) LogQuoteServ(stockQuote *models.StockQuote, trans string) {
 	timestamp := getUnixTimestamp()
-	quoteTimeInt, err := strconv.ParseInt(stockQuote.quoteTimestamp, 10, 64)
+	quoteTimeInt, err := strconv.ParseInt(stockQuote.QuoteTimestamp, 10, 64)
 	if err != nil {
 		utils.LogErr(err, "Failed to parse quote server timestamp")
 	}
