@@ -1,0 +1,115 @@
+sudo adduser monkey_user
+echo "monkey_pass" | sudo passwd --stdin monkey_user
+sudo usermod -aG wheel monkey_user
+sudo groupadd docker
+sudo usermod -aG docker monkey_user
+
+
+//Docker Swarm
+
+//master
+docker swarm init --advertise-addr 192.168.1.134
+//add other machines ...
+docker node ls
+
+
+
+//uninstall docker
+sudo yum remove docker docker-client \
+	docker-client-latest \
+	docker-common \
+	docker-latest \
+	docker-latest-logrotate \
+	docker-logrotate \
+	docker-selinux \ 
+	docker-engine-selinux \
+	docker-engine \
+
+sudo yum list installed | grep docker
+//remove any missed
+sudo yum install docker-ce-17.12.1.ce-1.el7.centos.x86_64.rpm 
+sudo systemctl start docker
+docker load < ./registry
+
+//cleaning docker shit kill and remove all 
+docker stop $(docker ps -a -q)
+docker system prune -a
+docker rmi $(docker images -a -q) -f
+
+//start registry
+docker run -d -p 5111:5000 --restart=always --name monkey_registry registry
+
+//open firewall
+sudo firewall-cmd  --permanent --add-port=2376/tcp
+sudo firewall-cmd  --permanent --add-port=2377/tcp
+sudo firewall-cmd  --permanent --add-port=7946/tcp
+sudo firewall-cmd  --permanent --add-port=7946/udp
+sudo firewall-cmd  --permanent --add-port=4789/udp
+sudo firewall-cmd  --permanent --add-port=5111/tcp
+sudo firewall-cmd --reload
+
+//docker save all images 
+chmod +x docker-images.sh
+./docker-images.sh save-images 
+// copy over images folder and images.db folder to usb
+
+//loading images
+// copy over images folder and images.db folder to home
+chmod +x docker-images.sh
+./docker-images.sh load-images
+
+//list images in registry
+curl -X GET http://localhost:5111/v2/_catalog
+
+
+//push images to registry
+docker tag src_transaction_service localhost:5111/src_transaction_service
+docker push localhost:5111/src_transaction_service
+
+docker tag src_transaction_service localhost:5111/src_trigger_manager
+docker push localhost:5111/src_trigger_manager
+
+docker tag src_rabbit localhost:5111/src_rabbit
+docker push localhost:5111/src_rabbit
+
+docker tag src_redis localhost:5111/src_redis
+docker push localhost:5111/src_redis
+
+docker tag src_transaction_db localhost:5111/src_transaction_db
+docker push localhost:5111/src_transaction_db
+
+docker tag src_transaction_db localhost:5111/src_logger
+docker push localhost:5111/src_logger
+
+docker tag src_transaction_db localhost:5111/src_log_db
+docker push localhost:5111/src_log_db
+
+docker tag src_transaction_db localhost:5111/postgres
+docker push localhost:5111/postgres
+
+docker tag src_transaction_db localhost:5111/golang
+docker push localhost:5111/golang
+
+docker tag src_transaction_db localhost:5111/redis
+docker push localhost:5111/redis
+
+docker tag src_transaction_db localhost:5111/rabbitmq
+docker push localhost:5111/rabbitmq
+
+docker tag src_transaction_db localhost:5111/src_quote_server_mock
+docker push localhost:5111/src_quote_server_mock
+
+docker tag src_transaction_db localhost:5111/test
+docker push localhost:5111/test
+
+//pulling images
+
+// add insecure registry config for registry server 
+{
+ "insecure-registries" : ["192.168.1.134:5111"]
+}
+in /etc/docker/daemon.json
+
+//restart docker
+sudo systemctl restart docker
+
