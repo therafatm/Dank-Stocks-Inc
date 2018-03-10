@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"common/utils"
+
 	"github.com/streadway/amqp"
 )
 
@@ -168,15 +169,6 @@ func NewLoggerConnection() (logconn *LogConnection) {
 	return
 }
 
-// func Close() {
-// 	if globalLog.Conn != nil {
-// 		globalLog.Conn.Close()
-// 	}
-// 	if globalLog.Channel != nil {
-// 		globalLog.Channel.Close()
-// 	}
-// }
-
 func DecodeMessage(reader io.Reader) (message *Message) {
 	dec := gob.NewDecoder(reader)
 	err := dec.Decode(&message)
@@ -282,9 +274,9 @@ func (logconn *LogConnection) LogCommand(command Command, vars map[string]string
 	}
 }
 
-func (logconn *LogConnection) LogQuoteServ(username string, price string, stocksymbol string, quoteTimestamp string, cryptokey string, trans string) {
+func (logconn *LogConnection) LogQuoteServ(stockQuote *models.stockQuote, trans string) {
 	timestamp := getUnixTimestamp()
-	quoteTimeInt, err := strconv.ParseInt(quoteTimestamp, 10, 64)
+	quoteTimeInt, err := strconv.ParseInt(stockQuote.quoteTimestamp, 10, 64)
 	if err != nil {
 		utils.LogErr(err, "Failed to parse quote server timestamp")
 	}
@@ -293,10 +285,10 @@ func (logconn *LogConnection) LogQuoteServ(username string, price string, stocks
 	quoteServer := QuoteServerType{Timestamp: timestamp,
 		Server:            server,
 		QuoteServerTime:   quoteTimeInt,
-		Username:          username,
-		Symbol:            stocksymbol,
-		Price:             price,
-		CryptoKey:         cryptokey,
+		Username:          stockQuote.Username,
+		Symbol:            stockQuote.Symbol,
+		Price:             stockQuote.Value,
+		CryptoKey:         stockQuote.CrytpoKey,
 		TransactionNumber: tnum}
 
 	msg := Message{QuoteServer: &quoteServer}

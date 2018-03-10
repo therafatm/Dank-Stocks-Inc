@@ -37,10 +37,11 @@ type Stock struct {
 }
 
 type StockQuote struct {
-	Username string         `json:"username"`
-	Symbol   string         `json:"symbol"`
-	Value    string         `json:"amount"`
-	Qtype    CacheQueryType `json:"CacheQueryType"`
+	Username  string         `json:"username"`
+	Symbol    string         `json:"symbol"`
+	Value     string         `json:"amount"`
+	Qtype     CacheQueryType `json:"CacheQueryType"`
+	CrytpoKey string         `json:"cryptokey"`
 }
 
 type Trigger struct {
