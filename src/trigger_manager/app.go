@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"common/logging"
@@ -18,8 +19,10 @@ type Env struct {
 }
 
 func main() {
+	host := os.Getenv("TRANS_DB_HOST")
+	port := os.Getenv("TRANS_DB_PORT")
 	logger := logging.NewLoggerConnection()
-	tdb := transdb.NewTransactionDBConnection()
+	tdb := transdb.NewTransactionDBConnection(host, port)
 	quoteCache := transdb.NewQuoteCacheConnection()
 
 	defer tdb.DB.Close()
