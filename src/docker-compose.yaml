@@ -24,12 +24,8 @@ services:
 
   log_db:
     build: ./log_db
-
     volumes:
       - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-    ports:
-      - "5433:5432"
 
   transaction_db:
     build: ./transaction_db
@@ -95,9 +91,7 @@ services:
         - rabbit:rabbit
         - log_db:logdb
   
-    entrypoint: waitforit -address=tcp://logdb:5432 -timeout=20 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- fresh log.go
-
-    command: go run app.go
+    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- waitforit -address=tcp://logdb:5432 -timeout=20 -debug -- fresh log.go
 
     env_file:
       - vars.env

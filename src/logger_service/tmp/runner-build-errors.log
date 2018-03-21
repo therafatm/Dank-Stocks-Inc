@@ -1,0 +1,5 @@
+# logger_service
+./dumplog.go:80:36: undefined: host
+./dumplog.go:80:42: undefined: port
+./log.go:12:6: main redeclared in this block
+	previous declaration at ./dumplog.go:79:6

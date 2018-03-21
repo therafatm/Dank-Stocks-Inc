@@ -6,58 +6,57 @@ GRANT ALL PRIVILEGES ON DATABASE logs TO seng468;
 
 CREATE TABLE Errors (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL
-    server VARCHAR(20) NOT NULL
-    transactionNum INTEGER NOT NULL
-    command VARCHAR(20) NOT NULL
-    username VARCHAR(50) NOT NULL UNIQUE,
-    funds INTEGER
-    errorMessage VARCHAR(200) NOT NULL
+    timestamp BIGINT NOT NULL,
+    server VARCHAR(20),
+    transactionNum INTEGER,
+    command VARCHAR(20),
+    username VARCHAR(50),
+    funds VARCHAR(50),
+    errorMessage VARCHAR(200),
     runnumber INTEGER
 
 );
 
 CREATE TABLE SystemEvents (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL
-    server VARCHAR(20) NOT NULL
-    command VARCHAR(20) NOT NULL
-    username VARCHAR(50) NOT NULL UNIQUE,
-    stocksymbol VARCHAR(4) NOT NULL
-    funds INTEGER NOT NULL
+    timestamp BIGINT NOT NULL,
+    server VARCHAR(20),
+    command VARCHAR(20),
+    username VARCHAR(50),
+    stocksymbol VARCHAR(4),
+    funds VARCHAR(50),
     runnumber INTEGER
 );
 
 CREATE TABLE UserCommand (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL
-    server VARCHAR(20) NOT NULL
-    transactionNum INTEGER NOT NULL
-    command VARCHAR(20) NOT NULL
-    username VARCHAR(50) NOT NULL UNIQUE,
-    stocksymbol VARCHAR(4) NOT NULL
-    funds INTEGER NOT NULL
+    timestamp BIGINT NOT NULL,
+    server VARCHAR(20),
+    transactionNum INTEGER,
+    command VARCHAR(20),
+    username VARCHAR(50),
+    stocksymbol VARCHAR(4),
+    funds VARCHAR(50),
     runnumber INTEGER
 );
 
 CREATE TABLE QuoteServer (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL
-    server VARCHAR(20) NOT NULL
-    quoteServerTime TIME NOT NULL
-    username VARCHAR(50) NOT NULL UNIQUE,
-    stocksymbol VARCHAR(4) NOT NULL
-    money INTEGER NOT NULL
-    cryptokey VARCHAR(50) NOT NULL UNIQUE,
+    timestamp TIME NOT NULL,
+    server VARCHAR(20),
+    quoteServerTime INTEGER,
+    username VARCHAR(50),
+    stocksymbol VARCHAR(4),
+    money VARCHAR(50),
+    cryptokey VARCHAR(50) UNIQUE,
     runnumber INTEGER
 );
 CREATE TABLE AccountTransaction (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL
-    server VARCHAR(20) NOT NULL
-    transactionNum INTEGER NOT NULL
-    action VARCHAR(20)
-    username VARCHAR(50) NOT NULL UNIQUE,
-    funds INTEGER
+    timestamp TIME NOT NULL,
+    server VARCHAR(20),
+    transactionNum INTEGER,
+    action VARCHAR(20),
+    username VARCHAR(50),
+    funds VARCHAR(50)
 );
-
