@@ -1,18 +1,17 @@
 package queries
 
 import (
+	"common/logging"
+	"common/utils"
 	"database/sql"
 	"fmt"
 	"os"
-	"common/utils"
-	"common/logging"
-
 
 	_ "github.com/lib/pq"
 )
 
 type Env struct {
-	DB     *sql.DB
+	DB *sql.DB
 }
 
 func NewLogDBConnection(host string, port string) (db *sql.DB) {
@@ -25,7 +24,7 @@ func NewLogDBConnection(host string, port string) (db *sql.DB) {
 		utils.LogErr(err, "Error connecting to DB.")
 		panic(err)
 	}
-	return 
+	return
 }
 
 func (env Env) InsertUserCommand(data logging.UserCommandType) (res sql.Result, err error) {
@@ -42,13 +41,13 @@ func (env Env) InsertAccountTransaction(data logging.AccountTransactionType) (re
 
 func (env Env) InsertSystemEvent(data logging.SystemEventType) (res sql.Result, err error) {
 	query := "INSERT INTO SystemEvent(timestamp, server, transactionNum, command, username, stocksymbol, funds) VALUES($1,$2,$3,$4,$5,$6,$7)"
-	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.Command, data.Username,  data.Symbol, data.Funds)
+	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.Command, data.Username, data.Symbol, data.Funds)
 	return
 }
 
 func (env Env) InsertQuoteServer(data logging.QuoteServerType) (res sql.Result, err error) {
-	query := "INSERT INTO QuoteServer(timestamp, server, transactionNum, quoteServerTime, username, stocksymbol, money, cryptokey) VALUES($1,$2,$3,$4,$5,$6,$7,$8)"
-	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.QuoteServerTime, data.Username,  data.Symbol, data.Price, data.CryptoKey)
+	query := "INSERT INTO QuoteServer(timestamp, server, quoteServerTime, username, stocksymbol, money, cryptokey) VALUES($1,$2,$3,$4,$5,$6,$7,$8)"
+	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.QuoteServerTime, data.Username, data.Symbol, data.Price, data.CryptoKey)
 	return
 }
 
@@ -58,11 +57,39 @@ func (env Env) InsertErrorEvent(data logging.ErrorEventType) (res sql.Result, er
 	return
 }
 
+func (env Env) QueryUserCommand() (ret []logging.UserCommandType, err error) {
+	query := "SELECT timestamp, server, transactionNum, command, username, stocksymbol, funds FROM UserCommand"
+	rows, err := env.DB.Query(query)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		data := logging.UserCommandType{}
+		rows.Scan(&data.Timestamp, &data.Server, &data.TransactionNumber, &data.Command, &data.Username, &data.Symbol, &data.Funds)
+		ret = append(ret, data)
+	}
+	return
+}
+
+func (env Env) QueryQuoteServer() (ret []logging.QuoteServerType, err error) {
+	query := "SELECT timestamp, server, quoteServerTime, username, stocksymbol, money, cryptokey FROM QuoteServer"
+	rows, err := env.DB.Query(query)
+	if err != nil{
+		return
+	}
+	for rows.Next() {
+		data := logging.QuoteServerType{}
+		rows.Scan(&data.Timestamp, &data.Server, &data.QuoteServerTime, &data.Username, &data.Symbol, &data.Price, &data.CryptoKey)
+		ret = append(ret, data)
+	}
+	return
+}
+
 func (env Env) StoreMessage(message logging.Message) (result sql.Result, err error) {
 	if message.UserCommand != nil {
 		result, err = env.InsertUserCommand(*message.UserCommand)
 		if err != nil {
-			return 
+			return
 		}
 	}
 	if message.AccountTransaction != nil {
@@ -92,4 +119,3 @@ func (env Env) StoreMessage(message logging.Message) (result sql.Result, err err
 
 	return
 }
-

@@ -1,6 +1,20 @@
-version: '2'
+version: '3'
 
 services:
+  manager:
+    build: 
+      context: .
+      dockerfile: manager/Dockerfile
+    volumes:
+      - ./manager:/manager
+    entrypoint: python -u /manager/manager.py
+    depends_on:
+      - log_db
+    links:
+        - log_db:logdb
+    ports:
+      - "3000:3000"
+
   test:
     volumes:
       - ./test:/go/src/test
@@ -23,9 +37,18 @@ services:
       - vars.env
 
   log_db:
-    build: ./log_db
+    image: 'citusdata/citus:7.3.0'
     volumes:
       - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    labels: ['com.citusdata.role=Master']
+    links:
+        - log_worker:log_worker
+
+  log_worker:
+    image: 'citusdata/citus:7.3.0'
+    volumes:
+      - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    labels: ['com.citusdata.role=Worker']
 
   transaction_db:
     build: ./transaction_db
@@ -72,7 +95,6 @@ services:
       - vars.env
 
   logger:
-
     volumes:
       - ./logger_service:/go/src/logger_service
       - ./common:/go/src/common
