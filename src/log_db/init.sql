@@ -49,7 +49,7 @@ CREATE TABLE QuoteServer (
     username VARCHAR(50),
     stocksymbol VARCHAR(4),
     money VARCHAR(50),
-    cryptokey VARCHAR(50) UNIQUE,
+    cryptokey VARCHAR(50),
     runnumber INTEGER
 );
 CREATE TABLE AccountTransaction (
@@ -61,3 +61,15 @@ CREATE TABLE AccountTransaction (
     username VARCHAR(50),
     funds VARCHAR(50)
 );
+
+
+CREATE OR REPLACE FUNCTION distribute () RETURNS void as $$
+    BEGIN 
+        PERFORM create_distributed_table('UserCommand', 'uid');
+        PERFORM create_distributed_table('Errors', 'uid');
+        PERFORM create_distributed_table('SystemEvents', 'uid');
+        PERFORM create_distributed_table('QuoteServer', 'uid');
+        PERFORM create_distributed_table('AccountTransaction', 'uid');
+        RETURN;
+    END;
+$$ LANGUAGE plpgsql;

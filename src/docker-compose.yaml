@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   manager:
@@ -49,7 +49,6 @@ services:
     volumes:
       - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
     labels: ['com.citusdata.role=Worker']
-    command: "curl -d '{'master_host':'logdb', 'master_port':'5432', 'worker_host':'log_worker', 'worker_port': '5432', 'db':'logs', 'user':'postgres', 'password':'postgres'}' -H 'Content-Type: application/json/' -X POST http://localhost:3000"
 
   transaction_db:
     build: ./transaction_db

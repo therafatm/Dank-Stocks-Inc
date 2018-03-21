@@ -10,8 +10,8 @@ masters = {}
 q = queue.Queue()
 
 #SELECT master_get_active_worker_nodes();
-#"curl -d '{'master_host':'logdb', 'master_port':'5432', 'worker_host':'log_worker', 'worker_port': '5432', 'db':'logs', 'user':'postgres', 'password':'postgres'}' -H 'Content-Type: application/json/' -X POST http://localhost:3000"
-#
+# curl -d '{"master_host":"logdb", "master_port":"5432", "worker_host":"log_worker", "worker_port": "5432", "db":"logs", "user":"postgres", "password":"postgres"}' -H "Content-Type: application/json/" -X POST http://localhost:3000
+
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -38,8 +38,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         q.put(data)
         self.wfile.write(bytes("Sure thing buddy!\n", "utf8"))
 
-def wait_for_connect(host, port, passwd, user, db):
-    while True:
+def wait_for_connect(host, port, passwd, user, db, retrys=20):
+    for i in range(retrys):
         try:
             conn = psycopg2.connect("dbname=%s user=%s host=%s port=%s password=%s" % (db, user, host, port, passwd))
             conn.autocommit = True
@@ -48,6 +48,9 @@ def wait_for_connect(host, port, passwd, user, db):
         except:
             print("retrying " + host + ":" + port)
             time.sleep(1)
+
+    print("Timed out connecting to " + host + ":" + port)
+    return None
 
 
 def run(server_class=HTTPServer, handler_class=RequestHandler, port=3000):
@@ -61,19 +64,23 @@ def process():
     while True:
         data = q.get()
         conn = wait_for_connect(data['master_host'], data['master_port'], data['password'], data['user'], data['db'])
-        wait_for_connect(data['worker_host'], data['worker_port'], data['password'], data['user'], data['db'])
-        master = data['master_host'] + ':' + data['master_port']
+        worker_conn = wait_for_connect(data['worker_host'], data['worker_port'], data['password'], data['user'], 'postgres')
+        
+        if conn and worker_conn:
+            master = data['master_host'] + ':' + data['master_port']
 
-        cur = conn.cursor()
-        cur.execute("""SELECT master_add_node(%(worker_host)s, %(worker_port)s)""", data)
-        print("adding " + data['worker_host'] + ":" + data['worker_port'] + " to " + master)
-            
-        if master not in masters:
-            cur.execute("""SELECT create_distributed_table('UserCommand', 'uid');""")
-            print("creating distributed table")
-            masters[master] = 0
+            cur = conn.cursor()
+            cur.execute("""SELECT master_add_node(%(worker_host)s, %(worker_port)s);""", data)
+            print("adding " + data['worker_host'] + ":" + data['worker_port'] + " to " + master)
+                
+            if master not in masters:
+                cur.execute("""SELECT distribute();""")
+                masters[master] = 0
 
-        masters[master] += 1
+            masters[master] += 1
+
+        else:
+            print("Timed out.")
 
 
 if __name__ == "__main__":
