@@ -12,6 +12,5 @@ WORKDIR /go/src/logger_service
 
 
 RUN go get github.com/pilu/fresh
+RUN go get github.com/lib/pq
 RUN go get ../...
-
-

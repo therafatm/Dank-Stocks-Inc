@@ -64,6 +64,7 @@ func main() {
 
     url := fmt.Sprintf("http://%s:%s", *host, *port)
     allCmds := make([]commands.Command, 0)
+    otherCmds := make([]commands.Command, 0)
 
     replacer := strings.NewReplacer("[", "", "]", "", ".", "", ",", " ")
     scanner := bufio.NewScanner(file)
@@ -72,7 +73,11 @@ func main() {
         line := replacer.Replace(scanner.Text())
         data := strings.Fields(line)
         command := commands.ParseData(data)
-        allCmds = append(allCmds, command)
+        if(len(command.Username) > 0){
+            allCmds = append(allCmds, command)
+        }else{
+            otherCmds = append(otherCmds, command)
+        }
     }
 
     userMap := make(map[string][]commands.Command)
@@ -92,6 +97,15 @@ func main() {
     }
     
     wg.Wait()
+
+    client := &http.Client{}
+    for _, cmd := range otherCmds {
+        endpoint := commands.FormatCommandEndpoint(cmd)
+        if endpoint != "" {
+            postData(client, url + endpoint)
+        }
+    }
+
     totalTime := time.Since(start)
     fmt.Printf("%d in %s\n", len(allCmds), totalTime)
 
