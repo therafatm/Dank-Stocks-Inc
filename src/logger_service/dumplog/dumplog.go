@@ -1,4 +1,4 @@
-package main
+package dumplog
 
 import (
 	"common/utils"
@@ -39,9 +39,7 @@ func validateSchema(s *xsd.Schema, fread io.Reader) {
 	}
 }
 
-func main() {
-	host := "logdb"
-	port := "5432"
+func Dumplog(host string, port string, filename string, username string) {
 	db := queries.NewLogDBConnection(host, port)
 	env := queries.Env{DB: db}
 	env.DB.SetMaxOpenConns(300)
@@ -66,7 +64,7 @@ func main() {
 	}
 	defer s.Free()
 
-	f, err := os.Create(logfile)
+	f, err := os.Create(filename)
 	if err != nil {
 		utils.LogErr(err, "Failed to open log file.")
 	}
@@ -109,5 +107,5 @@ func main() {
 	_, err = f.Seek(0, 0)
 	reader := bufio.NewReader(f)
 	validateSchema(s, reader)
-	log.Println("Log succesfully valdiated.")
+	log.Println("Log succesfully valdiated " + filename)
 }

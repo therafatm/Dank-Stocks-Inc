@@ -7,7 +7,7 @@ CREATE EXTENSION citus;
 
 CREATE TABLE Errors (
     uid serial PRIMARY KEY,
-    timestamp BIGINT NOT NULL,
+    timestamp VARCHAR(50) NOT NULL,
     server VARCHAR(20),
     transactionNum INTEGER,
     command VARCHAR(20),
@@ -20,7 +20,7 @@ CREATE TABLE Errors (
 
 CREATE TABLE SystemEvents (
     uid serial PRIMARY KEY,
-    timestamp BIGINT NOT NULL,
+    timestamp VARCHAR(50) NOT NULL,
     server VARCHAR(20),
     command VARCHAR(20),
     username VARCHAR(50),
@@ -31,7 +31,7 @@ CREATE TABLE SystemEvents (
 
 CREATE TABLE UserCommand (
     uid serial PRIMARY KEY,
-    timestamp BIGINT NOT NULL,
+    timestamp VARCHAR(50) NOT NULL,
     server VARCHAR(20),
     transactionNum INTEGER,
     command VARCHAR(20),
@@ -43,7 +43,7 @@ CREATE TABLE UserCommand (
 
 CREATE TABLE QuoteServer (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL,
+    timestamp VARCHAR(50) NOT NULL,
     server VARCHAR(20),
     quoteServerTime INTEGER,
     username VARCHAR(50),
@@ -54,7 +54,7 @@ CREATE TABLE QuoteServer (
 );
 CREATE TABLE AccountTransaction (
     uid serial PRIMARY KEY,
-    timestamp TIME NOT NULL,
+    timestamp VARCHAR(50) NOT NULL,
     server VARCHAR(20),
     transactionNum INTEGER,
     action VARCHAR(20),

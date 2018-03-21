@@ -34,7 +34,7 @@ func (env Env) InsertUserCommand(data logging.UserCommandType) (res sql.Result, 
 }
 
 func (env Env) InsertAccountTransaction(data logging.AccountTransactionType) (res sql.Result, err error) {
-	query := "INSERT INTO AccountTransaction(timestamp, server, transactionNum, command, username, stocksymbol, funds) VALUES($1,$2,$3,$4,$5,$6,$7)"
+	query := "INSERT INTO AccountTransaction(timestamp, server, transactionNum, action, username, funds) VALUES($1,$2,$3,$4,$5,$6)"
 	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.Action, data.Username, data.Funds)
 	return
 }

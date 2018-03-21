@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"common/logging"
 	"common/utils"
-	"fmt"
 	"logger_service/queries"
 	"time"
+	"log"
+	"logger_service/dumplog"
 )
 
 func main() {
@@ -31,16 +32,18 @@ func main() {
 	env.DB.SetMaxOpenConns(300)
 
 	go func() {
-		fmt.Print("Logger service is running")
-
 		for d := range msgs {
-			fmt.Print("test")
 			reader := bytes.NewReader(d.Body)
 			message := logging.DecodeMessage(reader)
-			logging.PrintMessage(*message)
-			_, err := env.StoreMessage(*message)
-			if err != nil {
-				utils.LogErr(err, "Failed to store message")
+			if message.DumpLog == nil{
+				logging.PrintMessage(*message)
+				_, err := env.StoreMessage(*message)
+				if err != nil {
+					utils.LogErr(err, "Failed to store message")
+				}
+			}else {
+				log.Println("Dumping log.")
+				dumplog.Dumplog(host, port, message.DumpLog.Filename, message.DumpLog.Username)
 			}
 		}
 	}()

@@ -3,6 +3,7 @@ package commands
 import (
     "log"
     "fmt"
+    "net/url"
 )
 
 func FormatCommandEndpoint(cmd Command) string {
@@ -62,7 +63,10 @@ func FormatCommandEndpoint(cmd Command) string {
             return fmt.Sprintf("/api/executeTriggers/%s", cmd.Username)
 
         case "DUMPLOG":
-            return fmt.Sprintf("/api/dumplog/%s/%s", cmd.Filename, cmd.Tnum)
+            if len(cmd.Username) > 0 {
+                return fmt.Sprintf("/api/dumplog/%s/%s/%s", url.PathEscape(cmd.Filename), cmd.Username, cmd.Tnum)
+            }
+            return fmt.Sprintf("/api/dumplog/%s/%s", url.PathEscape(cmd.Filename), cmd.Tnum)
 
         default:
             log.Fatalf("Invalid command: %s", cmd.Name)
