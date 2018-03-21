@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"common/logging"
 	"common/utils"
-	"time"
+	"fmt"
 	"logger_service/queries"
+	"time"
 )
 
 func main() {
@@ -26,10 +26,9 @@ func main() {
 
 	host := "logdb"
 	port := "5432"
-	db :=  queries.NewLogDBConnection(host, port)
+	db := queries.NewLogDBConnection(host, port)
 	env := queries.Env{DB: db}
 	env.DB.SetMaxOpenConns(300)
-
 
 	go func() {
 		fmt.Print("Logger service is running")

@@ -3,6 +3,7 @@ CREATE DATABASE logs OWNER seng468;
 GRANT ALL PRIVILEGES ON DATABASE logs TO seng468;
 
 \c logs; 
+CREATE EXTENSION citus;
 
 CREATE TABLE Errors (
     uid serial PRIMARY KEY,

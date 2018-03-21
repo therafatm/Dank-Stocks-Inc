@@ -1,15 +1,6 @@
-FROM golang:latest
-
-RUN apt-get update -y && apt-get install -y libxml2-dev
-
-ENV WAITFORIT_VERSION="v2.2.0"
-RUN curl -o /usr/local/bin/waitforit -sSL https://github.com/maxcnunes/waitforit/releases/download/$WAITFORIT_VERSION/waitforit-linux_amd64 && \
-    chmod +x /usr/local/bin/waitforit
-
-COPY common /go/src/common
-COPY logger_service /go/src/logger_service
-WORKDIR /go/src/logger_service
-
-
-RUN go get github.com/pilu/fresh
-RUN go get ../...
+FROM postgres:alpine
+    
+EXPOSE 5432
+COPY postgresql.conf /tmp/postgresql.conf
+COPY _updateConfig.sh /docker-entrypoint-initdb.d/_updateConfig.sh
+ADD init.sql /docker-entrypoint-initdb.d/
