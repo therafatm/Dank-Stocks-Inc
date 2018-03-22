@@ -46,7 +46,7 @@ func (env Env) InsertSystemEvent(data logging.SystemEventType) (res sql.Result, 
 }
 
 func (env Env) InsertQuoteServer(data logging.QuoteServerType) (res sql.Result, err error) {
-	query := "INSERT INTO QuoteServer(timestamp, server, quoteServerTime, username, stocksymbol, money, cryptokey) VALUES($1,$2,$3,$4,$5,$6,$7,$8)"
+	query := "INSERT INTO QuoteServer(timestamp, server, transactionNum, quoteServerTime, username, stocksymbol, money, cryptokey) VALUES($1,$2,$3,$4,$5,$6,$7,$8)"
 	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.QuoteServerTime, data.Username, data.Symbol, data.Price, data.CryptoKey)
 	return
 }
