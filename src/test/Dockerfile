@@ -1,4 +1,10 @@
-FROM golang:latest
+FROM golang:alpine
+
+RUN apk add --no-cache curl \
+        curl-dev \
+        libcurl \
+        git \
+        openssl
 
 COPY common /go/src/common
 COPY test /go/src/test

@@ -1,4 +1,10 @@
-FROM golang:latest
+FROM golang:alpine
+
+RUN apk add --update --no-cache curl \
+        curl-dev \
+        libcurl \
+        git \
+        openssl
 
 EXPOSE 8887
 

@@ -1,6 +1,6 @@
 FROM citusdata/citus:7.3-alpine
 
-RUN apk add --no-cache curl \
+RUN apk add --update --no-cache curl \
         curl-dev \
         libcurl
 
