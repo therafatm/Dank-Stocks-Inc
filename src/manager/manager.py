@@ -32,7 +32,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.data_string = self.rfile.read(int(self.headers['Content-Length']))
         self.send_response(200)
         self.end_headers()
-
+        print(self.data_string)
         data = json.loads(self.data_string.decode("utf8"))
         print(data)
         q.put(data)

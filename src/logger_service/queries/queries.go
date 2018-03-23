@@ -15,8 +15,8 @@ type Env struct {
 }
 
 func NewLogDBConnection(host string, port string) (db *sql.DB) {
-	user := os.Getenv("POSTGRES_USER")
-	password := os.Getenv("POSTGRES_PASSWORD")
+	user := os.Getenv("PGUSER")
+	password := os.Getenv("PGPASSWORD")
 	dbname := "logs"
 	config := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err := sql.Open("postgres", config)
