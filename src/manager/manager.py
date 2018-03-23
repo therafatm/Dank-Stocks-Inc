@@ -54,6 +54,7 @@ def wait_for_connect(host, port, passwd, user, db, retrys=20):
 
 
 def run(server_class=HTTPServer, handler_class=RequestHandler, port=3000):
+    port = environ.get('MANAGER_PORT', port)
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd...')
@@ -84,13 +85,6 @@ def process():
 
 
 if __name__ == "__main__":
-    port = "5432"
-    host    = environ.get('CITUS_HOST', 'logdb')
-    passwd = environ.get('POSTGRES_PASSWORD', 'postgres')
-    user = environ.get('POSTGRES_USER', 'postgres')
-    db   = environ.get('POSTGRES_DB', 'logs')
-
-
     worker_thread = threading.Thread(name='worker', target=process)
     server_thread = threading.Thread(name='server', target=run)
     worker_thread.start()
