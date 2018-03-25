@@ -42,7 +42,6 @@ func validateSchema(s *xsd.Schema, fread io.Reader) {
 func Dumplog(host string, port string, filename string, username string) {
 	db := queries.NewLogDBConnection(host, port)
 	env := queries.Env{DB: db}
-	env.DB.SetMaxOpenConns(300)
 
 	schema, err := os.Open(schemaFile)
 	if err != nil {
@@ -87,20 +86,20 @@ func Dumplog(host string, port string, filename string, username string) {
 		}
 	}
 
-	quotes, err := env.QueryQuoteServer()
-	if err != nil {
-		utils.LogErr(err, "Failed to query Quotes")
-	}
+	// quotes, err := env.QueryQuoteServer()
+	// if err != nil {
+	// 	utils.LogErr(err, "Failed to query Quotes")
+	// }
 
-	for _, quote := range quotes {
-		output, err := xml.MarshalIndent(quote, prefix, indent)
-		if err != nil {
-			utils.LogErr(err , "Failed to marshal Quote")
-		}else{
-			f.Write(output)
-			f.Write([]byte("\n"))
-		}
-	}
+	// for _, quote := range quotes {
+	// 	output, err := xml.MarshalIndent(quote, prefix, indent)
+	// 	if err != nil {
+	// 		utils.LogErr(err , "Failed to marshal Quote")
+	// 	}else{
+	// 		f.Write(output)
+	// 		f.Write([]byte("\n"))
+	// 	}
+	// }
 
 	f.Write([]byte("\n</log>"))
 

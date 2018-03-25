@@ -38,7 +38,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         q.put(data)
         self.wfile.write(bytes("Sure thing buddy!\n", "utf8"))
 
-def wait_for_connect(host, port, passwd, user, db, retrys=20):
+def wait_for_connect(host, port, passwd, user, db, retrys=60):
     for i in range(retrys):
         try:
             conn = psycopg2.connect("dbname=%s user=%s host=%s port=%s password=%s" % (db, user, host, port, passwd))

@@ -84,6 +84,9 @@ docker push localhost:5111/src_logger
 docker tag src_transaction_db localhost:5111/src_log_db
 docker push localhost:5111/src_log_db
 
+docker tag src_transaction_db localhost:5111/src_log_worker
+docker push localhost:5111/src_log_worker
+
 docker tag src_transaction_db localhost:5111/postgres
 docker push localhost:5111/postgres
 

@@ -15,6 +15,7 @@ export JSON=$(cat <<EOF
 EOF
 )
 
+
 wait-for-it.sh -h manager -p 3000 -t 20
 export URL="http://$MANAGER_HOST:$MANAGER_PORT"
 echo "Sending join request to manager $JSON at $URL"
