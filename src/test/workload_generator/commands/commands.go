@@ -15,10 +15,18 @@ type Command struct {
 }
 
 func parseCommandUserSymbolAmount(data []string) Command {
-	amount, err := strconv.Atoi(data[4])
-    if err != nil{
-        log.Fatalf("Could not parse Amount: %s \n %s" , data[4], data)
-    }
+	amount := 0
+	var err error
+	if len(data) < 5 {
+		amount = -1
+	} else {
+		amount, err = strconv.Atoi(data[4])
+
+		if err != nil {
+			log.Fatalf("Could not parse Amount: %s \n %s", data[4], data)
+		}
+	}
+
     return Command{Tnum: data[0], Name: data[1], Username: data[2], Symbol: data[3], Amount: amount}
 }
 

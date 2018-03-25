@@ -51,9 +51,9 @@ func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command){
 }
 
 func main() {
-    var host = flag.String("host", "transaction", "hostname of target")
+    var host = flag.String("host", "192.168.1.150", "hostname of target")
     var port = flag.String("port", "8888", "port to target")
-    var filename = flag.String("filepath", "workfiles/1userWorkLoad", "path to workload file")
+    var filename = flag.String("filepath", "../workfiles/10userWorkLoad", "path to workload file")
     flag.Parse()
 
     file, err := os.Open(*filename)
