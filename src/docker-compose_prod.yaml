@@ -1,0 +1,181 @@
+version: '3'
+
+services:
+  manager:
+    image: src_manager:latest
+    networks:
+      - my-overlay
+    deploy:
+        replicas: 1
+    volumes:
+      - ./manager:/manager
+    entrypoint: python -u /manager/manager.py
+    links:
+        - log_db:logdb
+    ports:
+      - "3000:3000"
+  logdb:
+    deploy:
+        replicas: 1
+    image: src_log_db:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    labels: ['com.citusdata.role=Master']
+    env_file:
+      - vars.env
+
+  log_worker:
+    deploy:
+        replicas: 0
+    image: src_log_worker:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    labels: ['com.citusdata.role=Worker']
+    env_file:
+      - vars.env
+    entrypoint: 
+      - connect-worker.sh
+      - docker-entrypoint.sh
+      - postgres
+    depends_on:
+      - manager
+      - log_db
+
+
+  transdb:
+    deploy:
+        replicas: 1
+    build: ./transaction_db
+    image: src_transaction_db:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - "5432:5432"
+
+  redis:
+    deploy:
+        replicas: 1
+    build: ./redis
+    image: src_redis:latest
+    networks:
+      - my-overlay
+    ports:
+      - "6379:6379"
+
+    env_file:
+      - vars.env
+
+  rabbit:
+    deploy:
+        replicas: 1
+    build: ./rabbit
+    image: src_rabbit:latest
+    networks:
+      - my-overlay
+    ports:
+      - "15672:15672"
+
+    env_file:
+      - vars.env
+    
+  logger:
+    deploy:
+        replicas: 1
+    image: src_logger:latest
+    volumes:
+      - ./logger_service:/go/src/logger_service
+      - ./common:/go/src/common
+
+    working_dir: /go/src/logger_service
+    networks:
+      - my-overlay
+    depends_on:
+      - log_db
+      - rabbit
+
+    links:
+        - rabbit:rabbit
+        - log_db:logdb
+  
+    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- waitforit -address=tcp://logdb:5432 -timeout=60 -debug -- fresh log.go
+
+    env_file:
+      - vars.env
+
+  transaction_service:
+    deploy:
+        replicas: 3
+    image: src_transaction_service:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_service:/go/src/transaction_service
+      - ./common:/go/src/common
+
+    working_dir: /go/src/transaction_service
+
+    ports:
+      - "8888:8888"
+
+    depends_on:
+      - transaction_db
+      - rabbit
+      - redis
+
+    links:
+        - transaction_db:transdb
+        - quote_server_mock:quoteserver
+        - redis:redis
+        - rabbit:rabbit
+  
+    entrypoint: waitforit -address=tcp://transdb:5432 -timeout=60 -debug -- waitforit -address=tcp://redis:6379 -timeout=60 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=60 -debug -- fresh app.go
+
+    command: go run app.go
+
+    env_file:
+      - vars.env
+
+  trigger_manager:
+    deploy:
+        replicas: 1
+    image: src_trigger_manager:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_service:/go/src/transaction_service
+      - ./trigger_manager:/go/src/trigger_manager
+      - ./common:/go/src/common 
+
+    ports:
+      - "8887:8887"
+
+    working_dir: /go/src/trigger_manager
+
+    depends_on:
+      - transaction_db
+      - rabbit
+      - redis
+
+    links:
+      - transaction_db:transdb
+      - quote_server_mock:quoteserver
+      - redis:redis
+      - rabbit:rabbit 
+
+    entrypoint: waitforit -address=tcp://transdb:5432 -timeout=60 -debug -- waitforit -address=tcp://redis:6379 -timeout=60 -debug -- waitforit -address=tcp://rabbit:5672 -timeout=60 -debug -- fresh app.go
+  
+    command: go run app.go
+
+    env_file:
+      - vars.env
+
+networks:
+    my-overlay:
+       external: true
