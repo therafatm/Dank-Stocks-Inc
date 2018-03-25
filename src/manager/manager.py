@@ -8,6 +8,8 @@ import queue
 
 masters = {}
 q = queue.Queue()
+lock = threading.Lock()
+
 
 #SELECT master_get_active_worker_nodes();
 # curl -d '{"master_host":"logdb", "master_port":"5432", "worker_host":"log_worker", "worker_port": "5432", "db":"logs", "user":"postgres", "password":"postgres"}' -H "Content-Type: application/json/" -X POST http://localhost:3000
@@ -76,19 +78,28 @@ def process():
                 
             if master not in masters:
                 cur.execute("""SELECT distribute();""")
-                masters[master] = 0
+                with lock:
+                    masters[master] = 0
 
-            masters[master] += 1
+            with lock:
+                masters[master] += 1
 
         else:
             print("Timed out.")
 
 
 if __name__ == "__main__":
-    worker_thread = threading.Thread(name='worker', target=process)
+    n = 10
+    workers = []
+    for i in range(n):
+        workers.append(threading.Thread(name='worker', target=process))
     server_thread = threading.Thread(name='server', target=run)
-    worker_thread.start()
+
+    for worker in workers:
+        worker.start()
+
     server_thread.start()
 
-    worker_thread.join()
+    for worker in workers:
+        worker_thread.join()
     server_thread.join()
