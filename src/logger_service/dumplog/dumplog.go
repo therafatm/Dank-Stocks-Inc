@@ -86,20 +86,20 @@ func Dumplog(host string, port string, filename string, username string) {
 		}
 	}
 
-	// quotes, err := env.QueryQuoteServer()
-	// if err != nil {
-	// 	utils.LogErr(err, "Failed to query Quotes")
-	// }
+	quotes, err := env.QueryQuoteServer()
+	if err != nil {
+	 	utils.LogErr(err, "Failed to query Quotes")
+	}
 
-	// for _, quote := range quotes {
-	// 	output, err := xml.MarshalIndent(quote, prefix, indent)
-	// 	if err != nil {
-	// 		utils.LogErr(err , "Failed to marshal Quote")
-	// 	}else{
-	// 		f.Write(output)
-	// 		f.Write([]byte("\n"))
-	// 	}
-	// }
+	 for _, quote := range quotes {
+	 	output, err := xml.MarshalIndent(quote, prefix, indent)
+	 	if err != nil {
+	 		utils.LogErr(err , "Failed to marshal Quote")
+	 	}else{
+	 		f.Write(output)
+	 		f.Write([]byte("\n"))
+	 	}
+	 }
 
 	f.Write([]byte("\n</log>"))
 

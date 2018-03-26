@@ -77,8 +77,11 @@ def process():
             print("adding " + data['worker_host'] + ":" + data['worker_port'] + " to " + master)
                 
             if master not in masters:
-                cur.execute("""SELECT distribute();""")
                 with lock:
+                    try:
+                         cur.execute("""SELECT distribute();""")
+                    except psycopg2.Error as e:
+                        print(e)
                     masters[master] = 0
 
             with lock:

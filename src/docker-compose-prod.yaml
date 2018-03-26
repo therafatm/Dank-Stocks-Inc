@@ -2,7 +2,7 @@ version: '3'
 
 services:
   manager:
-    image: src_manager:latest
+    image: 192.168.1.150:5111/src_manager:latest
     networks:
       - my-overlay
     deploy:
@@ -17,19 +17,19 @@ services:
   logdb:
     deploy:
         replicas: 1
-    image: src_log_db:latest
+    image: 192.168.1.150:5111/src_log_db:latest
     networks:
       - my-overlay
     volumes:
       - ./log_db/init.sql:/docker-entrypoint-initdb.d/init.sql
     labels: ['com.citusdata.role=Master']
     env_file:
-      - vars.env
+      - vars_prod.env
 
   log_worker:
     deploy:
         replicas: 0
-    image: src_log_worker:latest
+    image: 192.168.1.150:5111/src_log_worker:latest
     networks:
       - my-overlay
     volumes:
@@ -45,12 +45,23 @@ services:
       - manager
       - log_db
 
-
   transdb:
     deploy:
         replicas: 1
     build: ./transaction_db
-    image: src_transaction_db:latest
+    image: 192.168.1.150:5111/src_transaction_db:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - "5433:5432"
+  transdb1:
+    deploy:
+        replicas: 1
+    build: ./transaction_db
+    image: 192.168.1.150:5111/src_transaction_db:latest
     networks:
       - my-overlay
     volumes:
@@ -58,37 +69,62 @@ services:
 
     ports:
       - "5432:5432"
+  transdb2:
+    deploy:
+        replicas: 1
+    build: ./transaction_db
+    image: 192.168.1.150:5111/src_transaction_db:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - "5434:5432"
+
+  transdb3:
+    deploy:
+        replicas: 1
+    build: ./transaction_db
+    image: 192.168.1.150:5111/src_transaction_db:latest
+    networks:
+      - my-overlay
+    volumes:
+      - ./transaction_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    ports:
+      - "5435:5432"
 
   redis:
     deploy:
         replicas: 1
     build: ./redis
-    image: src_redis:latest
+    image: 192.168.1.150:5111/src_redis:latest
     networks:
       - my-overlay
     ports:
       - "6379:6379"
 
     env_file:
-      - vars.env
+      - vars_prod.env
 
   rabbit:
     deploy:
         replicas: 1
     build: ./rabbit
-    image: src_rabbit:latest
+    image: 192.168.1.150:5111/src_rabbit:latest
     networks:
       - my-overlay
     ports:
       - "15672:15672"
 
     env_file:
-      - vars.env
+      - vars_prod.env
     
   logger:
     deploy:
         replicas: 1
-    image: src_logger:latest
+    image: 192.168.1.150:5111/src_logger:latest
     volumes:
       - ./logger_service:/go/src/logger_service
       - ./common:/go/src/common
@@ -104,15 +140,15 @@ services:
         - rabbit:rabbit
         - log_db:logdb
   
-    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- waitforit -address=tcp://logdb:5432 -timeout=60 -debug -- fresh log.go
+    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=60 -debug -- waitforit -address=tcp://logdb:5432 -timeout=60 -debug -- fresh log.go
 
     env_file:
-      - vars.env
+      - vars_prod.env
 
   transaction_service:
     deploy:
-        replicas: 3
-    image: src_transaction_service:latest
+        replicas: 10
+    image: 192.168.1.150:5111/src_transaction_service:latest
     networks:
       - my-overlay
     volumes:
@@ -140,12 +176,12 @@ services:
     command: go run app.go
 
     env_file:
-      - vars.env
+      - vars_prod.env
 
   trigger_manager:
     deploy:
         replicas: 1
-    image: src_trigger_manager:latest
+    image: 192.168.1.150:5111/src_trigger_manager:latest
     networks:
       - my-overlay
     volumes:
@@ -174,7 +210,7 @@ services:
     command: go run app.go
 
     env_file:
-      - vars.env
+      - vars_prod.env
 
 networks:
     my-overlay:

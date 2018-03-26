@@ -125,7 +125,7 @@ services:
         - rabbit:rabbit
         - log_db:logdb
   
-    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=20 -debug -- waitforit -address=tcp://logdb:5432 -timeout=60 -debug -- fresh log.go
+    entrypoint: waitforit -address=tcp://rabbit:5672 -timeout=60 -debug -- waitforit -address=tcp://logdb:5432 -timeout=60 -debug -- fresh log.go
 
     env_file:
       - vars.env
