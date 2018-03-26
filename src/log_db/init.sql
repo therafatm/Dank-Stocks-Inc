@@ -6,10 +6,9 @@ GRANT ALL PRIVILEGES ON DATABASE logs TO seng468;
 CREATE EXTENSION citus;
 
 CREATE TABLE Errors (
-    uid serial PRIMARY KEY,
     timestamp bigint NOT NULL,
     server VARCHAR(20),
-    transactionNum INTEGER,
+    transactionnum INTEGER,
     command VARCHAR(20),
     username VARCHAR(50),
     funds VARCHAR(50),
@@ -19,7 +18,6 @@ CREATE TABLE Errors (
 );
 
 CREATE TABLE SystemEvents (
-    uid serial PRIMARY KEY,
     timestamp bigint NOT NULL,
     server VARCHAR(20),
     command VARCHAR(20),
@@ -30,10 +28,9 @@ CREATE TABLE SystemEvents (
 );
 
 CREATE TABLE UserCommand (
-    uid serial PRIMARY KEY,
     timestamp bigint NOT NULL,
     server VARCHAR(20),
-    transactionNum INTEGER,
+    transactionnum INTEGER,
     command VARCHAR(20),
     username VARCHAR(50),
     stocksymbol VARCHAR(4),
@@ -42,10 +39,9 @@ CREATE TABLE UserCommand (
 );
 
 CREATE TABLE QuoteServer (
-    uid serial PRIMARY KEY,
     timestamp bigint NOT NULL,
     server VARCHAR(20),
-    transactionNum INTEGER,
+    transactionnum INTEGER,
     quoteServerTime bigint,
     username VARCHAR(50),
     stocksymbol VARCHAR(4),
@@ -54,10 +50,9 @@ CREATE TABLE QuoteServer (
     runnumber INTEGER
 );
 CREATE TABLE AccountTransaction (
-    uid serial PRIMARY KEY,
     timestamp bigint NOT NULL,
     server VARCHAR(20),
-    transactionNum INTEGER,
+    transactionnum INTEGER,
     action VARCHAR(20),
     username VARCHAR(50),
     funds VARCHAR(50)
@@ -66,11 +61,11 @@ CREATE TABLE AccountTransaction (
 
 CREATE OR REPLACE FUNCTION distribute () RETURNS void as $$
     BEGIN 
-        PERFORM create_distributed_table('UserCommand', 'uid');
-        PERFORM create_distributed_table('Errors', 'uid');
-        PERFORM create_distributed_table('SystemEvents', 'uid');
-        PERFORM create_distributed_table('QuoteServer', 'uid');
-        PERFORM create_distributed_table('AccountTransaction', 'uid');
+        PERFORM create_distributed_table('UserCommand', 'transactionnum');
+        PERFORM create_distributed_table('Errors', 'transactionnum');
+        PERFORM create_distributed_table('SystemEvents', 'username');
+        PERFORM create_distributed_table('QuoteServer', 'transactionnum');
+        PERFORM create_distributed_table('AccountTransaction', 'transactionnum');
         RETURN;
     END;
 $$ LANGUAGE plpgsql;
