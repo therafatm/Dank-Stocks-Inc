@@ -3,11 +3,12 @@ package queries
 import (
 	"common/logging"
 	"common/utils"
+	"os"
 	"strconv"
 	"time"
-	"os"
-	_ "github.com/lib/pq"
+
 	"github.com/jackc/pgx"
+	_ "github.com/lib/pq"
 )
 
 type Env struct {
@@ -18,19 +19,19 @@ const num_records = 1000
 const timeout = 10
 
 const (
-	USERCOMMAND = "usercommand"
+	USERCOMMAND        = "usercommand"
 	ACCOUNTTRANSACTION = "accounttransaction"
-	SYSTEMEVENT = "systemevent"
-	ERRORS = "errors"
-	QUOTESERVER = "quoteserver"
+	SYSTEMEVENT        = "systemevent"
+	ERRORS             = "errors"
+	QUOTESERVER        = "quoteserver"
 )
 
-var schema = map[string][]string {
-	USERCOMMAND: []string{"timestamp", "server", "transactionnum", "command", "username", "stocksymbol", "funds"},
+var schema = map[string][]string{
+	USERCOMMAND:        []string{"timestamp", "server", "transactionnum", "command", "username", "stocksymbol", "funds"},
 	ACCOUNTTRANSACTION: []string{"timestamp", "server", "transactionnum", "action", "username", "funds"},
-	SYSTEMEVENT: []string{"timestamp", "server", "transactionnum", "command", "username", "stocksymbol", "funds"},
-	ERRORS: []string{"timestamp", "server", "transactionnum", "command", "username", "funds", "errormessage"},
-	QUOTESERVER: []string{"timestamp", "server", "transactionnum", "quoteservertime", "username", "stocksymbol", "money", "cryptokey"},
+	SYSTEMEVENT:        []string{"timestamp", "server", "transactionnum", "command", "username", "stocksymbol", "funds"},
+	ERRORS:             []string{"timestamp", "server", "transactionnum", "command", "username", "funds", "errormessage"},
+	QUOTESERVER:        []string{"timestamp", "server", "transactionnum", "quoteservertime", "username", "stocksymbol", "money", "cryptokey"},
 }
 
 func NewLogDBConnection(host string, port string) (db *pgx.Conn) {
@@ -45,10 +46,10 @@ func NewLogDBConnection(host string, port string) (db *pgx.Conn) {
 
 	dbname := os.Getenv("LOG_DB")
 	config := pgx.ConnConfig{
-		Host: host,
-		Port: u16port,
+		Host:     host,
+		Port:     u16port,
 		Database: dbname,
-		User: user,
+		User:     user,
 		Password: password,
 	}
 
@@ -93,9 +94,11 @@ func (env Env) InsertErrorEvent(data logging.ErrorEventType) (res pgx.CommandTag
 func (env Env) QueryUserCommand() (ret []logging.UserCommandType, err error) {
 	query := "SELECT timestamp, server, transactionnum, command, username, stocksymbol, funds FROM usercommand"
 	rows, err := env.DB.Query(query)
+
 	if err != nil {
 		return
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -112,9 +115,11 @@ func (env Env) QueryUserCommand() (ret []logging.UserCommandType, err error) {
 func (env Env) QueryQuoteServer() (ret []logging.QuoteServerType, err error) {
 	query := "SELECT timestamp, server, quoteservertime, username, stocksymbol, money, cryptokey FROM quoteserver"
 	rows, err := env.DB.Query(query)
-	if err != nil{
+
+	if err != nil {
 		return
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
@@ -128,7 +133,7 @@ func (env Env) QueryQuoteServer() (ret []logging.QuoteServerType, err error) {
 	return
 }
 
-func ConvertUserCommand(data logging.UserCommandType) (ret []interface{}){
+func ConvertUserCommand(data logging.UserCommandType) (ret []interface{}) {
 	ret = []interface{}{
 		data.Timestamp,
 		data.Server,
@@ -141,89 +146,89 @@ func ConvertUserCommand(data logging.UserCommandType) (ret []interface{}){
 	return
 }
 
-func ConvertQuoteServer(data logging.QuoteServerType) (ret []interface{}){
+func ConvertQuoteServer(data logging.QuoteServerType) (ret []interface{}) {
 	ret = []interface{}{
-		data.Timestamp, 
-		data.Server, 
-		data.TransactionNumber, 
-		data.QuoteServerTime, 
-		data.Username, 
+		data.Timestamp,
+		data.Server,
+		data.TransactionNumber,
+		data.QuoteServerTime,
+		data.Username,
 		data.Symbol,
-		data.Price, 
+		data.Price,
 		data.CryptoKey,
 	}
 	return
 }
 
-func ConvertAccountTransaction(data logging.AccountTransactionType) (ret []interface{}){
+func ConvertAccountTransaction(data logging.AccountTransactionType) (ret []interface{}) {
 	ret = []interface{}{
-		data.Timestamp, 
-		data.Server, 
-		data.TransactionNumber, 
+		data.Timestamp,
+		data.Server,
+		data.TransactionNumber,
 		data.Action,
-		data.Username, 
+		data.Username,
 		data.Funds,
 	}
 	return
 }
 
-func ConvertSystemEvent(data logging.SystemEventType) (ret []interface{}){
+func ConvertSystemEvent(data logging.SystemEventType) (ret []interface{}) {
 	ret = []interface{}{
-		data.Timestamp, 
-		data.Server, 
-		data.TransactionNumber, 
-		data.Command, 
-		data.Username, 
-		data.Symbol, 
+		data.Timestamp,
+		data.Server,
+		data.TransactionNumber,
+		data.Command,
+		data.Username,
+		data.Symbol,
 		data.Funds,
 	}
 	return
 }
 
-func ConvertErrorEvent(data logging.ErrorEventType) (ret []interface{}){
+func ConvertErrorEvent(data logging.ErrorEventType) (ret []interface{}) {
 	ret = []interface{}{
-		data.Timestamp, 
-		data.Server, 
-		data.TransactionNumber, 
-		data.Command, 
-		data.Username, 
-		data.Funds, 
-		data.ErrorMessage,	
+		data.Timestamp,
+		data.Server,
+		data.TransactionNumber,
+		data.Command,
+		data.Username,
+		data.Funds,
+		data.ErrorMessage,
 	}
 	return
 }
 
-func (env Env) CommitMessages(buffer map[string][][]interface{}, writeTime time.Time, commitNow bool) (map[string][][]interface{}, time.Time, error){
+func (env Env) CommitMessages(buffer map[string][][]interface{}, writeTime time.Time, commitNow bool) (map[string][][]interface{}, time.Time, error) {
 	curTime := time.Now()
 	write := writeTime.Sub(curTime).Seconds() > timeout
 
-	for k, _ := range buffer{
-		if len(buffer[k]) % num_records == 0 || write || commitNow{
-			writeTime = curTime;
+	for k, _ := range buffer {
+		if len(buffer[k])%num_records == 0 || write || commitNow {
+			writeTime = curTime
 			if len(buffer[k]) != 0 {
 				_, err := env.DB.CopyFrom(
-				    pgx.Identifier{k},
-				    schema[k],
-				    pgx.CopyFromRows(buffer[k]),
+					pgx.Identifier{k},
+					schema[k],
+					pgx.CopyFromRows(buffer[k]),
 				)
-				if err != nil{
+				if err != nil {
 					return buffer, curTime, err
 				}
 			}
 			buffer[k] = make([][]interface{}, 0)
 		}
 	}
-	
+
 	return buffer, writeTime, nil
 }
 
-func StoreMessage(buffer map[string][][]interface{}, message logging.Message) (map[string][][]interface{}) {
+func StoreMessage(buffer map[string][][]interface{}, message logging.Message) map[string][][]interface{} {
 	if message.UserCommand != nil {
 		if _, ok := buffer[USERCOMMAND]; !ok {
 			buffer[USERCOMMAND] = make([][]interface{}, 0)
 		}
 
-		buffer[USERCOMMAND] = append(buffer[USERCOMMAND], ConvertUserCommand(*message.UserCommand)) 
+		buffer[USERCOMMAND] = append(buffer[USERCOMMAND], ConvertUserCommand(*message.UserCommand))
 	}
 	if message.AccountTransaction != nil {
 		if _, ok := buffer[ACCOUNTTRANSACTION]; !ok {
@@ -254,4 +259,4 @@ func StoreMessage(buffer map[string][][]interface{}, message logging.Message) (m
 	}
 
 	return buffer
-} 
+}
