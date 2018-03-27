@@ -1,6 +1,22 @@
 version: '3'
 
 services:
+  test:
+    image: 192.168.1.150:5111/src_test:latest
+    networks:
+      - my-overlay
+    deploy:
+        replicas: 1  
+    volumes:
+      - ./test:/go/src/test
+      - ./common:/go/src/common 
+    working_dir: /go/src/test
+    links:
+      - transaction_service:transaction
+
+    env_file:
+      - vars_prod.env
+
   manager:
     image: 192.168.1.150:5111/src_manager:latest
     networks:
@@ -147,7 +163,7 @@ services:
 
   transaction_service:
     deploy:
-        replicas: 10
+        replicas: 4
     image: 192.168.1.150:5111/src_transaction_service:latest
     networks:
       - my-overlay
