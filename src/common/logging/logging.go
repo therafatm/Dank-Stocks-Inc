@@ -290,13 +290,17 @@ func (logconn *LogConnection) LogQuoteServ(stockQuote *models.StockQuote, trans 
 		utils.LogErr(err, "Failed to parse quote server timestamp")
 	}
 	tnum := parseTransactionNumber(trans)
+	price, err := formatStrAmount(stockQuote.Value)
+	if err != nil{
+		utils.LogErr(err, "Failed to parse str amount")
+	}
 
 	quoteServer := QuoteServerType{Timestamp: timestamp,
 		Server:            server,
 		QuoteServerTime:   quoteTimeInt,
 		Username:          stockQuote.Username,
 		Symbol:            stockQuote.Symbol,
-		Price:             stockQuote.Value,
+		Price:             price,
 		CryptoKey:         stockQuote.CrytpoKey,
 		TransactionNumber: tnum}
 

@@ -17,7 +17,7 @@ import (
 const prefix = ""
 const indent = "\t"
 const logfile = "log.xml"
-const schemaFile = "schema.xsd"
+const schemaFile = "./schema.xsd"
 
 func validateSchema(s *xsd.Schema, fread io.Reader) {
 	d, err := libxml2.ParseReader(fread)
