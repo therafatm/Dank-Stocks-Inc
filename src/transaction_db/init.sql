@@ -10,6 +10,8 @@ CREATE TABLE Users (
     money INTEGER NOT NULL
 );
 
+CREATE INDEX users_username on Users (username);
+
 CREATE TABLE Stocks (
     sid serial PRIMARY KEY,
     username VARCHAR(50) REFERENCES Users(username) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -17,6 +19,8 @@ CREATE TABLE Stocks (
     shares INTEGER NOT NULL,
     UNIQUE (username, symbol)
 );
+
+CREATE INDEX stock_username_symbol on Stocks (username, symbol);
 
 CREATE TABLE Reservations (
     rid serial PRIMARY KEY,
@@ -27,6 +31,8 @@ CREATE TABLE Reservations (
     amount INTEGER NOT NULL,
     time BIGINT NOT NULL
 );
+
+CREATE INDEX reservations_username on Reservations(username);
 
 CREATE TABLE Triggers (
     tid serial PRIMARY KEY,
@@ -39,3 +45,5 @@ CREATE TABLE Triggers (
     time BIGINT NOT NULL,
     UNIQUE (username, symbol, type)
 );
+
+CREATE INDEX triggers_username_symbol_type on Triggers (username, symbol, type);
