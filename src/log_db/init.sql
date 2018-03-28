@@ -20,6 +20,7 @@ CREATE TABLE Errors (
 CREATE TABLE SystemEvents (
     timestamp bigint NOT NULL,
     server VARCHAR(20),
+    transactionnum INTEGER,
     command VARCHAR(20),
     username VARCHAR(50),
     stocksymbol VARCHAR(4),
