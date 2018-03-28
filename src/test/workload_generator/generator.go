@@ -30,14 +30,14 @@ func postData(client *http.Client, url string) (err error, status int) {
 	}
 	defer resp.Body.Close()
 
-	log.Println("Sent request %s\n", url)
+	log.Println("Sent request: ", string(url))
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
 	status = resp.StatusCode
-	log.Println("Body: %s\n", body)
+	log.Println("Body: ", string(body))
 	return
 }
 
@@ -49,7 +49,10 @@ func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command) {
 	for _, command := range cmds {
 		endpoint := commands.FormatCommandEndpoint(command)
 		if endpoint != "" {
-			err, status := postData(client, url+endpoint)
+			_, status := postData(client, url+endpoint)
+			for status == 404 {
+				_, status = postData(client, url+endpoint)
+			}
 		}
 	}
 }
@@ -110,13 +113,16 @@ func main() {
 	for _, cmd := range otherCmds {
 		endpoint := commands.FormatCommandEndpoint(cmd)
 		if endpoint != "" {
-			err, status := postData(client, url+endpoint)
+			_, status := postData(client, url+endpoint)
+			for status == 404 {
+				_, status = postData(client, url+endpoint)
+			}
 		}
 	}
 
 	totalTime := time.Since(start)
 
-	fmt.Println("%d in %s\n", len(allCmds), totalTime)
+	log.Println("%d in %s\n", len(allCmds), totalTime)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
