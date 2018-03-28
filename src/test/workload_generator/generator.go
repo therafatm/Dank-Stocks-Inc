@@ -50,9 +50,6 @@ func postUserData(wg *sync.WaitGroup, url string, cmds []commands.Command) {
 		endpoint := commands.FormatCommandEndpoint(command)
 		if endpoint != "" {
 			err, status := postData(client, url+endpoint)
-			for err != nil || status == 404 {
-				err, status = postData(client, url+endpoint)
-			}
 		}
 	}
 }
@@ -63,7 +60,7 @@ func main() {
 	var filename = flag.String("filepath", "../workfiles/10userWorkLoad", "path to workload file")
 	flag.Parse()
 
-	log.SetOutput(ioutil.Discard)
+	// log.SetOutput(ioutil.Discard)
 
 	file, err := os.Open(*filename)
 	if err != nil {
@@ -114,9 +111,6 @@ func main() {
 		endpoint := commands.FormatCommandEndpoint(cmd)
 		if endpoint != "" {
 			err, status := postData(client, url+endpoint)
-			for err != nil || status == 404 {
-				err, status = postData(client, url+endpoint)
-			}
 		}
 	}
 
