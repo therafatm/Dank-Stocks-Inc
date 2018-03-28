@@ -64,40 +64,49 @@ def process():
     print ("Worker started")
     while True:
         data = q.get()
-        data['worker_host'] = socket.gethostbyaddr(data['worker_host'])[0]
-        data['master_host'] = socket.gethostbyaddr(data['master_host'])[0]
-        conn = wait_for_connect(data['master_host'], data['master_port'], data['password'], data['user'], data['db'])
-        worker_conn = wait_for_connect(data['worker_host'], data['worker_port'], data['password'], data['user'], 'postgres')
-        
-        if conn and worker_conn:
-            master = data['master_host'] + ':' + data['master_port']
-            if master not in masters:
-                with lock:
-                    masters[master] = 0
+        try:
+            print (data['worker_host'])
+            data['worker_host'] = socket.gethostbyaddr(data['worker_host'])[0]
+            print (data['master_host'])
+            #data['master_host'] = socket.gethostbyaddr(data['master_host'])[0]
+            conn = wait_for_connect(data['master_host'], data['master_port'], data['password'], data['user'], data['db'])
+            worker_conn = wait_for_connect(data['worker_host'], data['worker_port'], data['password'], data['user'], 'postgres')
 
-            cur = conn.cursor()
-            cur.execute("""SELECT nodename, nodeport from pg_dist_node where nodename=%(worker_host)s and nodeport=%(worker_port)s;""", data)
-            row = cur.fetchone();
-            if row:
-                print("Adding back startup {}:{} to active for {}".format(data['worker_host'], data['worker_port'], data['master_host']))
-                cur.execute("""SELECT master_activate_node(%(worker_host)s, %(worker_port)s);""", data)
-                with lock:
-                    masters[master] += 1
+            if conn and worker_conn:
+                master = data['master_host'] + ':' + data['master_port']
+                if master not in masters:
+                    with lock:
+                        masters[master] = 0
+
+                cur = conn.cursor()
+                cur.execute("""SELECT nodename, nodeport from pg_dist_node where nodename=%(worker_host)s and nodeport=%(worker_port)s;""", data)
+                row = cur.fetchone();
+                if row:
+                    print("Adding back startup {}:{} to active for {}".format(data['worker_host'], data['worker_port'], data['master_host']))
+                    cur.execute("""SELECT master_activate_node(%(worker_host)s, %(worker_port)s);""", data)
+                    with lock:
+                        masters[master] += 1
+
+                else:
+                    cur.execute("""SELECT master_add_node(%(worker_host)s, %(worker_port)s);""", data)
+                    print("Adding new {}:{} to {}".format(data['worker_host'], data['worker_port'], data['master_host']))
+                    with lock:
+                        masters[master] += 1
+                    try:
+                     cur.execute("""SELECT distribute();""")
+                    except psycopg2.Error as e:
+                        print(e)
+
+                healthq.put(data)
 
             else:
-                cur.execute("""SELECT master_add_node(%(worker_host)s, %(worker_port)s);""", data)
-                print("Adding new {}:{} to {}".format(data['worker_host'], data['worker_port'], data['master_host']))
-                with lock:
-                    masters[master] += 1
-                try:
-                 cur.execute("""SELECT distribute();""")
-                except psycopg2.Error as e:
-                    print(e)
+                print("Timed out.")
 
-            healthq.put(data)
-
-        else:
-            print("Timed out.")
+        except Exception as e:
+            print(e)
+            print("Retrying in 5 seconds")
+            time.sleep(5)
+            q.put(data)
 
 def healthcheck():
     while True:
@@ -119,7 +128,7 @@ def healthcheck():
                         print("Disabling node {}:{} for {}".format(worker_host, worker_port , data['master_host']))
                         cur.execute("""SELECT master_disable_node(%(host)s, %(port)s)""", worker_dict)
                         masters[master] -= 1
-            
+
             #check if inactive is alive
             cur.execute("""SELECT nodename, nodeport from pg_dist_node where isactive='f';""")
             rows = cur.fetchall()

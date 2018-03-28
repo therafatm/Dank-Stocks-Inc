@@ -30,14 +30,14 @@ func postData(client *http.Client, url string) (err error, status int) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("Sent request %s\n", url)
+	log.Println("Sent request %s\n", url)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
 	status = resp.StatusCode
-	fmt.Printf("Body: %s\n", body)
+	log.Println("Body: %s\n", body)
 	return
 }
 
@@ -119,7 +119,7 @@ func main() {
 	}
 
 	totalTime := time.Since(start)
-	fmt.Printf("%d in %s\n", len(allCmds), totalTime)
+	log.Println("%d in %s\n", len(allCmds), totalTime)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
