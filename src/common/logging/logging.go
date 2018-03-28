@@ -92,14 +92,14 @@ type AccountTransactionType struct {
 }
 
 type SystemEventType struct {
-	XMLName           string `xml:"systemEvent"`
-	Timestamp         int64  `xml:"timestamp"`
-	Server            string `xml:"server"`
-	TransactionNumber int64  `xml:"transactionNum"`
-	Command           string `xml:"command"`
-	Username          string `xml:"username"`
-	Symbol            string `xml:"stockSymbol"`
-	Funds             string `xml:"funds"`
+	XMLName           string  `xml:"systemEvent"`
+	Timestamp         int64   `xml:"timestamp"`
+	Server            string  `xml:"server"`
+	TransactionNumber int64   `xml:"transactionNum"`
+	Command           Command `xml:"command"`
+	Username          string  `xml:"username"`
+	Symbol            string  `xml:"stockSymbol"`
+	Funds             string  `xml:"funds"`
 }
 
 type QuoteServerType struct {
@@ -134,7 +134,7 @@ type Logger interface {
 	LogQuoteServ(stockQuote *models.StockQuote, trans string)
 	LogTransaction(action string, username string, amount int, trans string)
 	LogErrorEvent(command Command, vars map[string]string, emessage string)
-	LogSystemEvent(command string, username string, stocksymbol string, funds string, trans string)
+	LogSystemEvent(command Command, username string, stocksymbol string, funds string, trans string)
 	SendDumpLog(filename string, username string)
 }
 
@@ -328,7 +328,7 @@ func (logconn *LogConnection) SendDumpLog(filename string, username string) {
 
 }
 
-func (logconn *LogConnection) LogSystemEvent(command string, username string, stocksymbol string, funds string, trans string) {
+func (logconn *LogConnection) LogSystemEvent(command Command, username string, stocksymbol string, funds string, trans string) {
 	timestamp := getUnixTimestamp()
 	tnum := parseTransactionNumber(trans)
 	systemEvent := SystemEventType{

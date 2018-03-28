@@ -21,7 +21,7 @@ const timeout = 10
 const (
 	USERCOMMAND        = "usercommand"
 	ACCOUNTTRANSACTION = "accounttransaction"
-	SYSTEMEVENT        = "systemevent"
+	SYSTEMEVENT        = "systemevents"
 	ERRORS             = "errors"
 	QUOTESERVER        = "quoteserver"
 )
@@ -74,7 +74,7 @@ func (env Env) InsertAccountTransaction(data logging.AccountTransactionType) (re
 }
 
 func (env Env) InsertSystemEvent(data logging.SystemEventType) (res pgx.CommandTag, err error) {
-	query := "INSERT INTO SystemEvent(timestamp, server, transactionNum, command, username, stocksymbol, funds) VALUES($1,$2,$3,$4,$5,$6,$7)"
+	query := "INSERT INTO SystemEvents(timestamp, server, transactionnum, command, username, stocksymbol, funds) VALUES($1,$2,$3,$4,$5,$6,$7)"
 	res, err = env.DB.Exec(query, data.Timestamp, data.Server, data.TransactionNumber, data.Command, data.Username, data.Symbol, data.Funds)
 	return
 }
