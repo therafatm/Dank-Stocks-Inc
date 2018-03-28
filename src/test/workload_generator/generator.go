@@ -63,6 +63,8 @@ func main() {
 	var filename = flag.String("filepath", "../workfiles/10userWorkLoad", "path to workload file")
 	flag.Parse()
 
+	log.SetOutput(ioutil.Discard)
+
 	file, err := os.Open(*filename)
 	if err != nil {
 		log.Fatal(err)
@@ -119,7 +121,8 @@ func main() {
 	}
 
 	totalTime := time.Since(start)
-	log.Println("%d in %s\n", len(allCmds), totalTime)
+
+	fmt.Println("%d in %s\n", len(allCmds), totalTime)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
