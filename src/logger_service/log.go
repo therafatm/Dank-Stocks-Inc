@@ -41,13 +41,13 @@ func main() {
 			if message.DumpLog == nil{
 				logging.PrintMessage(*message)
 				buffer = queries.StoreMessage(buffer, *message)
-				env.CommitMessages(buffer, writeTime, false)
+				buffer, writeTime, err = env.CommitMessages(buffer, writeTime, false)
 				if err != nil {
 					utils.LogErr(err, "Failed to commit message")
 				}
 			}else {
 				log.Println(len(buffer["usercommand"]))
-				env.CommitMessages(buffer, writeTime, true)
+				buffer, writeTime, err = env.CommitMessages(buffer, writeTime, true)
 				if err != nil {
 					utils.LogErr(err, "Failed to commit message")
 				}

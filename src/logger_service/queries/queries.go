@@ -113,7 +113,7 @@ func (env Env) QueryUserCommand() (ret []logging.UserCommandType, err error) {
 }
 
 func (env Env) QueryQuoteServer() (ret []logging.QuoteServerType, err error) {
-	query := "SELECT timestamp, server, quoteservertime, username, stocksymbol, money, cryptokey FROM quoteserver"
+	query := "SELECT timestamp, server, transactionnum, quoteservertime, username, stocksymbol, money, cryptokey FROM quoteserver"
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
@@ -124,7 +124,7 @@ func (env Env) QueryQuoteServer() (ret []logging.QuoteServerType, err error) {
 
 	for rows.Next() {
 		data := logging.QuoteServerType{}
-		err = rows.Scan(&data.Timestamp, &data.Server, &data.QuoteServerTime, &data.Username, &data.Symbol, &data.Price, &data.CryptoKey)
+		err = rows.Scan(&data.Timestamp, &data.Server, &data.TransactionNumber, &data.QuoteServerTime, &data.Username, &data.Symbol, &data.Price, &data.CryptoKey)
 		if err != nil {
 			return
 		}

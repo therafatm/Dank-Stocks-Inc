@@ -232,12 +232,12 @@ func formatStrAmount(amount string) (str string, err error) {
 	if err != nil {
 		return "", err
 	}
-	str = fmt.Sprintf("%d.%d", b/100, b%100)
+	str = fmt.Sprintf("%d.%02d", b/100, b%100)
 	return
 }
 
 func formatAmount(amount int) string {
-	return fmt.Sprintf("%d.%d", amount/100, amount%100)
+	return fmt.Sprintf("%d.%02d", amount/100, amount%100)
 }
 
 func getUnixTimestamp() int64 {
