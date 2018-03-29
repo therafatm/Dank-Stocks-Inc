@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
-	_ "github.com/lib/pq"
 )
 
 type Env struct {
