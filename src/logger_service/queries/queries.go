@@ -14,7 +14,7 @@ type Env struct {
 	DB *pgx.Conn
 }
 
-const num_records = 1000
+const num_records = 5000
 const timeout = 10
 
 const (

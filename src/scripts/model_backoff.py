@@ -45,7 +45,7 @@ def model(max_retry=5, base_timeout=1000., add_timeout=5000.):
 
 
 retry_range = range(0, 10)
-base_range = np.arange(0.0, 10000., 250.)
+base_range = np.arange(0.0, 5000., 50.)
 add_range = [0.0] # np.arange(0.0, 10000., 250.)
 
 print retry_range

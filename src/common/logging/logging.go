@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"log"
+	//"log"
 	"os"
 	"strconv"
 	"time"
@@ -210,21 +210,21 @@ func (logconn *LogConnection) publishMessage(message Message) {
 }
 
 func PrintMessage(message Message) {
-	if message.UserCommand != nil {
-		log.Println("%+v\n", message.UserCommand)
-	}
-	if message.AccountTransaction != nil {
-		log.Println("%+v\n", message.AccountTransaction)
-	}
-	if message.SystemEvent != nil {
-		log.Println("%+v\n", message.SystemEvent)
-	}
-	if message.QuoteServer != nil {
-		log.Println("%+v\n", message.QuoteServer)
-	}
-	if message.ErrorEvent != nil {
-		log.Println("%+v\n", message.ErrorEvent)
-	}
+	// if message.UserCommand != nil {
+	// 	log.Println("%+v\n", message.UserCommand)
+	// }
+	// if message.AccountTransaction != nil {
+	// 	log.Println("%+v\n", message.AccountTransaction)
+	// }
+	// if message.SystemEvent != nil {
+	// 	log.Println("%+v\n", message.SystemEvent)
+	// }
+	// if message.QuoteServer != nil {
+	// 	log.Println("%+v\n", message.QuoteServer)
+	// }
+	// if message.ErrorEvent != nil {
+	// 	log.Println("%+v\n", message.ErrorEvent)
+	// }
 }
 
 func formatStrAmount(amount string) (str string, err error) {
