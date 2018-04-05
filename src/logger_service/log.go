@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"common/logging"
 	"common/utils"
-	"logger_service/queries"
 	"time"
 	"log"
 	"os"
@@ -28,8 +27,7 @@ func main() {
 
 	host := os.Getenv("LOG_DB_HOST")
 	port := os.Getenv("LOG_DB_PORT")
-	db := queries.NewLogDBConnection(host, port)
-	env := queries.Env{DB: db}
+	logdb := logging.NewLogDBConnection(host, port)
 
 	go func() {
 		buffer := map[string][][]interface{}{}
@@ -40,14 +38,14 @@ func main() {
 			message := logging.DecodeMessage(reader)
 			if message.DumpLog == nil{
 				logging.PrintMessage(*message)
-				buffer = queries.StoreMessage(buffer, *message)
-				buffer, writeTime, err = env.CommitMessages(buffer, writeTime, false)
+				buffer = logging.StoreMessage(buffer, *message)
+				buffer, writeTime, err = logdb.CommitMessages(buffer, writeTime, false)
 				if err != nil {
 					utils.LogErr(err, "Failed to commit message")
 				}
 			}else {
 				log.Println(len(buffer["usercommand"]))
-				buffer, writeTime, err = env.CommitMessages(buffer, writeTime, true)
+				buffer, writeTime, err = logdb.CommitMessages(buffer, writeTime, true)
 				if err != nil {
 					utils.LogErr(err, "Failed to commit message")
 				}

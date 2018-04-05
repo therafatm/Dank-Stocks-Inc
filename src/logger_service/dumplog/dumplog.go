@@ -4,7 +4,7 @@ import (
 	"common/utils"
 	"encoding/xml"
 	"io/ioutil"
-	"logger_service/queries"
+	"common/logging"
 	"log"
 	"bufio"
 	"os"
@@ -40,8 +40,7 @@ func validateSchema(s *xsd.Schema, fread io.Reader) {
 }
 
 func Dumplog(host string, port string, filename string, username string) {
-	db := queries.NewLogDBConnection(host, port)
-	env := queries.Env{DB: db}
+	logdb := logging.NewLogDBConnection(host, port)
 
 	schema, err := os.Open(schemaFile)
 	if err != nil {
@@ -71,7 +70,7 @@ func Dumplog(host string, port string, filename string, username string) {
 
 	f.Write([]byte("<log>\n"))
 
-	cmds, err := env.QueryUserCommand()
+	cmds, err := logdb.QueryUserCommand()
 	if err != nil {
 		utils.LogErr(err, "Failed to query UserCommand")
 	}
@@ -86,7 +85,7 @@ func Dumplog(host string, port string, filename string, username string) {
 		}
 	}
 
-	quotes, err := env.QueryQuoteServer()
+	quotes, err := logdb.QueryQuoteServer()
 	if err != nil {
 	 	utils.LogErr(err, "Failed to query Quotes")
 	}

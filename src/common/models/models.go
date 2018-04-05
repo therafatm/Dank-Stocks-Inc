@@ -43,6 +43,7 @@ type StockQuote struct {
 	Qtype          CacheQueryType `json:"CacheQueryType"`
 	CrytpoKey      string         `json:"cryptokey"`
 	QuoteTimestamp string         `json:"QuoteTimestamp`
+	Timestamp 	   string  		  `json:"timestamp"`
 }
 
 type Trigger struct {
