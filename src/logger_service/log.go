@@ -40,6 +40,8 @@ func main() {
 				logging.PrintMessage(*message)
 				buffer = logging.StoreMessage(buffer, *message)
 				buffer, writeTime, err = logdb.CommitMessages(buffer, writeTime, false)
+				// log.Println("WRITEET:::")
+				// log.Println(writeTime)	
 				if err != nil {
 					utils.LogErr(err, "Failed to commit message")
 				}
