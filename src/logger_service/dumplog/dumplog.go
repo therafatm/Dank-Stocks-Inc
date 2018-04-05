@@ -85,7 +85,7 @@ func Dumplog(host string, port string, filename string, username string) {
 		}
 	}
 
-	quotes, err := logdb.QueryQuoteServer()
+	quotes, err := logdb.QueryQuoteServer(username)
 	if err != nil {
 	 	utils.LogErr(err, "Failed to query Quotes")
 	}

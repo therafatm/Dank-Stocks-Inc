@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"log"
 
 	"github.com/jackc/pgx"
 )
@@ -112,24 +113,23 @@ func (logdb LogDB) QueryUserCommand() (ret []UserCommandType, err error) {
 	return
 }
 
-func (logdb LogDB) QueryQuoteServer() (ret []QuoteServerType, err error) {
-	query := "SELECT timestamp, server, transactionnum, quoteservertime, username, stocksymbol, money, cryptokey FROM quoteserver"
-	rows, err := logdb.DB.Query(query)
+func (logdb LogDB) GetSingleUserCommands(username string) (ret []UserCommandType, err error) {
+	query := "SELECT timestamp, server, transactionnum, command, username, stocksymbol, funds FROM usercommand WHERE username = $1"
+	rows, err := logdb.DB.Query(query, username)
 
 	if err != nil {
 		return
 	}
 
-	defer rows.Close()
-
 	for rows.Next() {
-		data := QuoteServerType{}
-		err = rows.Scan(&data.Timestamp, &data.Server, &data.TransactionNumber, &data.QuoteServerTime, &data.Username, &data.Symbol, &data.Price, &data.CryptoKey)
+		data := UserCommandType{}
+		err = rows.Scan(&data.Timestamp, &data.Server, &data.TransactionNumber, &data.Command, &data.Username, &data.Symbol, &data.Funds)
 		if err != nil {
 			return
 		}
 		ret = append(ret, data)
 	}
+
 	return
 }
 
@@ -221,7 +221,8 @@ func ConvertErrorEvent(data ErrorEventType) (ret []interface{}) {
 
 func (logdb LogDB) CommitMessages(buffer map[string][][]interface{}, writeTime time.Time, commitNow bool) (map[string][][]interface{}, time.Time, error) {
 	curTime := time.Now()
-	write := writeTime.Sub(curTime).Seconds() > timeout
+	write := curTime.Sub(writeTime).Seconds() > timeout
+	log.Println(curTime.Sub(writeTime).Seconds())
 
 	for k, _ := range buffer {
 		if len(buffer[k])%num_records == 0 || write || commitNow {
