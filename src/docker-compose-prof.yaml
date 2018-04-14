@@ -1,0 +1,32 @@
+version: '3'
+# docker-compose exec test go run workload_generator/generator.go --filepath=workfiles/100userWorkLoad --host=test_server --port=8888
+services:
+  test_server:
+    volumes:
+      - ./profile:/go/src/profile
+      - ./common:/go/src/common
+    working_dir: /go/src/profile
+    build:
+      context: .
+      dockerfile: transaction_service/Dockerfile
+    entrypoint: fresh server.go
+    expose: 
+      - "8888"
+    env_file:
+      - vars.env
+    
+  test:
+    volumes:
+      - ./test:/go/src/test
+      - ./common:/go/src/common
+    working_dir: /go/src/test
+    build:
+      context: .
+      dockerfile: test/Dockerfile
+    links:
+      - test_server:test_server
+    depends_on:
+      - test_server
+    env_file:
+      - vars.env
+    
